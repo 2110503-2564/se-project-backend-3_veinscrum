@@ -5,7 +5,7 @@
     "main": "src/server.ts",
     "type": "module",
     "scripts": {
-        "dev": "nodemon",
+        "dev": "nodemon --watch 'src/' --exec \"node --import './config/register.mjs' src/server.ts\" -e ts",
         "prepare": "husky",
         "lint": "tsc --noEmit"
     },

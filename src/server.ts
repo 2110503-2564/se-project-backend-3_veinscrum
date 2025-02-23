@@ -1,9 +1,10 @@
-import * as express from "express";
+import express from "express";
+import cookieParser from "cookie-parser";
 import * as dotenv from "dotenv";
-import * as cookieParser from "cookie-parser";
 
 import { connectDB } from "../config/db";
 import { authRouter } from "./routes/auth";
+import { companiesRouter } from "./routes/companies";
 
 dotenv.config({ path: "./config/config.env" });
 
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/companies", companiesRouter);
 
 const PORT = process.env.PORT || 5050;
 
