@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { Query } from "mongoose";
-import { CompanyModel } from "../models/Company";
 import { Company } from "../types/Company";
+import { CompanyModel } from "../models/Company";
+import { InterviewSessionModel } from "../models/InterviewSession";
 
 const EXCLUDED_QUERY_FIELDS = ["select", "sort", "page", "limit"];
 
@@ -18,7 +19,8 @@ export const getCompanies = async (
     // Filter and parse query parameters for comparisons
     const comparisonQuery = buildComparisonQuery(req.query);
 
-    let query: Query<Company[], Company> = CompanyModel.find(comparisonQuery);
+    let query: Query<Company[], Company> =
+        CompanyModel.find(comparisonQuery).populate("sessions");
 
     // Handle field selection
     if (req.query.select && typeof req.query.select === "string") {
@@ -64,7 +66,9 @@ export const getCompany = async (
     next: NextFunction,
 ) => {
     try {
-        const company = await CompanyModel.findById(req.params.id);
+        const company = await CompanyModel.findById(req.params.id).populate(
+            "sessions",
+        );
 
         if (!company) {
             res.status(400).json({
@@ -150,7 +154,7 @@ export async function deleteCompany(
             return;
         }
 
-        // await Appointment.deleteMany({ company: req.params.id });
+        await InterviewSessionModel.deleteMany({ company: req.params.id });
         await CompanyModel.deleteOne({ _id: req.params.id });
 
         res.status(200).json({ success: true, data: {} });
