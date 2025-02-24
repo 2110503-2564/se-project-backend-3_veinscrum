@@ -34,4 +34,6 @@ const CompanySchema = new mongoose.Schema<Company>({
     },
 });
 
+// todo: add vitual schema for interviewSession
+
 export const CompanyModel = mongoose.model<Company>("Company", CompanySchema);
