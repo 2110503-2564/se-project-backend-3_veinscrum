@@ -5,9 +5,10 @@
     "main": "src/server.ts",
     "type": "module",
     "scripts": {
-        "dev": "nodemon --watch 'src/' --exec \"node --import './config/register.mjs' src/server.ts\" -e ts",
+        "dev": "nodemon",
         "prepare": "husky",
-        "lint": "tsc --noEmit"
+        "lint": "tsc --noEmit",
+        "prettier:clean": "prettier --write ."
     },
     "keywords": [],
     "author": "",

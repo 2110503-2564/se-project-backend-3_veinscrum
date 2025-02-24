@@ -1,0 +1,5 @@
+{
+    "watch": ["src/"],
+    "exec": "node --import ./config/register.mjs src/server.ts",
+    "ext": "ts"
+}
