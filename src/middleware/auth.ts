@@ -1,4 +1,4 @@
-import * as jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 import { JwtPayload } from "jsonwebtoken";
 import { UserModel } from "../models/User";
@@ -37,7 +37,7 @@ export const protect = async (
             process.env.JWT_SECRET,
         ) as jwt.JwtPayload;
 
-        (req as AuthRequest).body = (await UserModel.findById(
+        (req as AuthRequest).user = (await UserModel.findById(
             decoded.id,
         )) as User;
 
@@ -57,7 +57,7 @@ export const protect = async (
 
 export const authorize = (...roles: string[]) => {
     return (req: Request, res: Response, next: NextFunction): void => {
-        const user = (req as AuthRequest).body;
+        const user = (req as AuthRequest).user;
 
         if (!user) {
             res.status(401).json({

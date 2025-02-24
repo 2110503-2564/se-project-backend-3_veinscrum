@@ -2,5 +2,5 @@ import { Request } from "express";
 import { User } from "./User";
 
 export interface AuthRequest extends Request {
-    body: User;
+    user: User;
 }
