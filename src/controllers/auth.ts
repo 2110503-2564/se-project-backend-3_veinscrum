@@ -45,14 +45,9 @@ export const register = async (
             role,
         });
 
-        const token = user.getSignedJwtToken();
-
         sendTokenResponse(user, 200, res);
     } catch (err) {
-        if (!(err instanceof MongooseError)) return;
-
-        res.status(400).json({ success: false });
-        console.error(err.stack);
+        next(err);
     }
 };
 
@@ -100,7 +95,7 @@ export const login = async (
 
         sendTokenResponse(user, 200, res);
     } catch (err) {
-        res.status(400).json({ success: false });
+        next(err);
     }
 };
 
@@ -112,10 +107,7 @@ export const getMe = async (
     res: Response,
     next: NextFunction,
 ): Promise<void> => {
-    const { id } = req.body as AuthRequest["body"];
-
-    console.log(req);
-
+    const { id } = (req as AuthRequest).user;
     const user = await UserModel.findById(id);
 
     res.status(200).json({ success: true, data: user });

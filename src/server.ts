@@ -5,6 +5,7 @@ import * as dotenv from "dotenv";
 import { connectDB } from "../config/db";
 import { authRouter } from "./routes/auth";
 import { companiesRouter } from "./routes/companies";
+import { errorHandler } from "./middleware/errorHandler";
 
 dotenv.config({ path: "./config/config.env" });
 
@@ -17,6 +18,8 @@ app.use(cookieParser());
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/companies", companiesRouter);
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5050;
 
