@@ -71,6 +71,8 @@ export const getCompany = async (
                 success: false,
                 message: "Company not found",
             });
+
+            return;
         }
 
         res.status(200).json({ success: true, data: company });
@@ -118,6 +120,8 @@ export async function updateCompany(
                 success: false,
                 message: "Company not found",
             });
+
+            return;
         }
 
         res.status(200).json({ success: true, data: company });
@@ -142,6 +146,8 @@ export async function deleteCompany(
                 success: false,
                 message: "Company not found",
             });
+
+            return;
         }
 
         // await Appointment.deleteMany({ company: req.params.id });
