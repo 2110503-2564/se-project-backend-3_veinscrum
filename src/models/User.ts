@@ -1,6 +1,6 @@
 import * as mongoose from "mongoose";
 import * as bcrypt from "bcryptjs";
-import * as jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 import { SignOptions } from "jsonwebtoken";
 import { User } from "../types/User";
@@ -48,6 +48,7 @@ const UserSchema = new mongoose.Schema<User>({
 UserSchema.pre("save", async function (next) {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
+    next();
 });
 
 UserSchema.methods.getSignedJwtToken = function () {
