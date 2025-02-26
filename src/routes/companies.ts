@@ -17,7 +17,7 @@ router
 
 router
     .route("/:id")
-    .get(protect, authorize("user", "admin"), getCompany)
+    .get(getCompany)
     .put(protect, authorize("user", "admin"), updateCompany)
     .delete(protect, authorize("user", "admin"), deleteCompany);
 
