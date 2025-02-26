@@ -5,16 +5,6 @@ import { CompanyModel } from "../models/Company";
 import { AuthRequest } from "../types/Request";
 
 
-
-// Extend the Express Request type to include 'user' property
-declare global {
-    namespace Express {
-        interface Request {
-            user?: any; // Replace 'any' with a more specific type for the user if needed
-        }
-    }
-} 
-
 // Define the EXCLUDED_QUERY_FIELDS for query filtering
 const EXCLUDED_QUERY_FIELDS = ["select", "sort", "page", "limit"];
 
@@ -26,12 +16,16 @@ const EXCLUDED_QUERY_FIELDS = ["select", "sort", "page", "limit"];
 export const getInterviewSessions = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ): Promise<void> => {
     let query: Query<any[], any>;
 
-    if (req.user?.role !== "admin") {
-        query = InterviewSessionModel.find({ user: req.user?.id }).populate("company");
+    const user = (req as AuthRequest).user;
+
+    if (user?.role !== "admin") {
+        query = InterviewSessionModel.find({ user: user?.id }).populate(
+            "company",
+        );
     } else {
         query = InterviewSessionModel.find().populate("company user");
     }
@@ -54,11 +48,11 @@ export const getInterviewSessions = async (
 export const getInterviewSession = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ): Promise<void> => {
     try {
         const interviewSession = await InterviewSessionModel.findById(
-            req.params.id
+            req.params.id,
         ).populate({
             path: "candidate",
             select: "name email",
@@ -87,7 +81,7 @@ export const getInterviewSession = async (
 export const addInterviewSession = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ): Promise<void> => {
     try {
         req.body.candidate = req.params.candidateId;
@@ -101,19 +95,21 @@ export const addInterviewSession = async (
             return;
         }
 
+        const user = (req as AuthRequest).user;
+
         // Add user ID to request body
-        req.body.user = req.user?.id;
+        req.body.user = user?.id;
 
         // Check for existing interview sessions
         const existingSessions = await InterviewSessionModel.find({
-            user: req.user?.id,
+            user: user?.id,
         });
 
         // If user is not an admin, they can only create up to 3 interview sessions
-        if (existingSessions.length >= 3 && req.user?.role !== "admin") {
+        if (existingSessions.length >= 3 && user?.role !== "admin") {
             res.status(400).json({
                 success: false,
-                message: `User with ID ${req.user?.id} has already created 3 interview sessions`,
+                message: `User with ID ${user?.id} has already created 3 interview sessions`,
             });
             return;
         }
@@ -134,17 +130,25 @@ export const addInterviewSession = async (
 export const updateInterviewSession = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ): Promise<void> => {
     try {
         let session = await InterviewSessionModel.findById(req.params.id);
 
+        const user = (req as AuthRequest).user;
+
         if (!session) {
-            res.status(404).json({ success: false, message: "Session not found" });
+            res.status(404).json({
+                success: false,
+                message: "Session not found",
+            });
             return;
         }
 
-        if (req.user?.role !== "admin" && session.user.toString() !== req.user?.id) {
+        if (
+            user?.role !== "admin" &&
+            session.user.toString() !== user?.id
+        ) {
             res.status(403).json({ success: false, message: "Not authorized" });
             return;
         }
@@ -152,7 +156,7 @@ export const updateInterviewSession = async (
         session = await InterviewSessionModel.findByIdAndUpdate(
             req.params.id,
             req.body,
-            { new: true, runValidators: true }
+            { new: true, runValidators: true },
         );
 
         res.status(200).json({ success: true, data: session });
@@ -167,17 +171,25 @@ export const updateInterviewSession = async (
 export const deleteInterviewSession = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
 ): Promise<void> => {
     try {
         const session = await InterviewSessionModel.findById(req.params.id);
 
+        const user = (req as AuthRequest).user;
+
         if (!session) {
-            res.status(404).json({ success: false, message: "Session not found" });
+            res.status(404).json({
+                success: false,
+                message: "Session not found",
+            });
             return;
         }
 
-        if (req.user?.role !== "admin" && session.user.toString() !== req.user?.id) {
+        if (
+            user?.role !== "admin" &&
+            session.user.toString() !== user?.id
+        ) {
             res.status(403).json({ success: false, message: "Not authorized" });
         }
 
@@ -194,7 +206,7 @@ export const deleteInterviewSession = async (
 // Set fields to select from the query
 const applyFieldSelection = (
     query: Query<any[], any>,
-    select: string
+    select: string,
 ): Query<any[], any> => {
     const fields = select.split(",").join(" ");
     query = query.select(fields);
@@ -204,7 +216,7 @@ const applyFieldSelection = (
 // Set sorting order for the query
 const applySortingOrder = (
     query: Query<any[], any>,
-    sort: string
+    sort: string,
 ): Query<any[], any> => {
     const sortBy = sort.split(",").join(" ");
     query = query.sort(sortBy);
@@ -215,7 +227,7 @@ const applySortingOrder = (
 const validatePaginationParams = (
     pageParam: any,
     limitParam: any,
-    res: Response
+    res: Response,
 ): { page: number | null; limit: number | null } => {
     const page = parseInt(pageParam as string, 10) || 1;
     const limit = parseInt(limitParam as string, 10) || 25;
@@ -243,7 +255,7 @@ const validatePaginationParams = (
 const applyPagination = async (
     query: Query<any[], any>,
     page: number,
-    limit: number
+    limit: number,
 ): Promise<PaginationResult> => {
     const startIndex = (page - 1) * limit;
     const total = await InterviewSessionModel.countDocuments();
@@ -277,7 +289,7 @@ const buildComparisonQuery = (query: qs.ParsedQs): qs.ParsedQs => {
     return JSON.parse(
         JSON.stringify(filteredQuery).replace(
             /\b(gt|gte|lt|lte|in)\b/g,
-            (match) => `$${match}`
-        )
+            (match) => `$${match}`,
+        ),
     );
 };
