@@ -3,7 +3,7 @@ import * as bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 import { SignOptions } from "jsonwebtoken";
-import { User } from "../types/User";
+import { User } from "@/types/User";
 
 const UserSchema = new mongoose.Schema<User>({
     name: {

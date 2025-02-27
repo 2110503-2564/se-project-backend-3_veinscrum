@@ -1,6 +1,6 @@
-import { EXCLUDED_QUERY_FIELDS } from "src/constants/queryFields";
+import { EXCLUDED_QUERY_FIELDS } from "@/constants/queryFields";
 
-export function buildComparisonQuery  (query: qs.ParsedQs): qs.ParsedQs {
+export function buildComparisonQuery(query: qs.ParsedQs): qs.ParsedQs {
     const filteredQuery: qs.ParsedQs = {};
 
     for (const key in query) {

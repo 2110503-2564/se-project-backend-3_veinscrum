@@ -5,8 +5,8 @@ import {
     createCompany,
     updateCompany,
     deleteCompany,
-} from "../controllers/companies";
-import { authorize, protect } from "../middleware/auth";
+} from "@/controllers/companies";
+import { authorize, protect } from "@/middleware/auth";
 
 const router = Router();
 

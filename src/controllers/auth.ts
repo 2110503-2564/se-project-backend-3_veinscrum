@@ -1,8 +1,9 @@
-import { MongooseError } from "mongoose";
-import { UserModel } from "../models/User";
-import { NextFunction, Response, Request } from "express";
-import { AuthRequest } from "../types/Request";
-import { User } from "../types/User";
+import { NextFunction, Request, Response } from "express";
+import { POSTUserLoginRequest } from "@/types/api/v1/auth/login/POST";
+import { POSTUserRegisterRequest } from "@/types/api/v1/auth/register/POST";
+import { RequestWithAuth } from "@/types/Request";
+import { UserModel } from "@/models/User";
+import { User } from "@/types/User";
 
 const sendTokenResponse = (user: User, statusCode: number, res: Response) => {
     const token = user.getSignedJwtToken();
@@ -36,12 +37,15 @@ export const register = async (
     next: NextFunction,
 ): Promise<void> => {
     try {
-        const { name, email, password, role } = req.body as AuthRequest["body"];
+        const request = req as POSTUserRegisterRequest;
+
+        const { name, email, tel, password, role } = request.body;
 
         const user = await UserModel.create({
             name,
             email,
             password,
+            tel,
             role,
         });
 
@@ -60,7 +64,9 @@ export const login = async (
     next: NextFunction,
 ) => {
     try {
-        const { email, password } = req.body as AuthRequest["body"];
+        const request = req as POSTUserLoginRequest;
+
+        const { email, password } = request.body;
 
         if (!email || !password) {
             res.status(400).json({
@@ -107,7 +113,9 @@ export const getMe = async (
     res: Response,
     next: NextFunction,
 ): Promise<void> => {
-    const { id } = (req as AuthRequest).user;
+    const request = req as RequestWithAuth;
+    const { id } = request.user;
+
     const user = await UserModel.findById(id);
 
     res.status(200).json({ success: true, data: user });

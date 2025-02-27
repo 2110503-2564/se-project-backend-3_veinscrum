@@ -1,13 +1,9 @@
 import { NextFunction, Request, Response } from "express";
-import { Query } from "mongoose";
-import { Company } from "../types/Company";
-import { CompanyModel } from "../models/Company";
-import { InterviewSessionModel } from "../models/InterviewSession";
-import { applyFieldSelection } from "src/utils/applyFieldSelection";
-import { applyPagination } from "src/utils/applyPagination";
-import { applySortingOrder } from "src/utils/applySortingOrder";
-import { buildComparisonQuery } from "src/utils/buildComparisonQuery";
-import { validatePaginationParams } from "src/utils/validatePaginationParams";
+import { RequestWithAuth } from "@/types/Request";
+import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
+import { filterAndPaginate } from "@/utils/filterAndPaginate";
+import { CompanyModel } from "@/models/Company";
+import { InterviewSessionModel } from "@/models/InterviewSession";
 
 /// @desc     Get companies (query is allowed)
 /// @route    GET /api/v1/companies
@@ -17,40 +13,32 @@ export const getCompanies = async (
     res: Response,
     next: NextFunction,
 ): Promise<void> => {
-    // Filter and parse query parameters for comparisons
-    const comparisonQuery = buildComparisonQuery(req.query);
-
-    let query: Query<Company[], Company> =
-        CompanyModel.find(comparisonQuery).populate("sessions");
-
-    // Handle field selection
-    if (req.query.select && typeof req.query.select === "string") {
-        query = applyFieldSelection(query, req.query.select);
-    }
-
-    // Handle sorting
-    if (req.query.sort && typeof req.query.sort === "string") {
-        query = applySortingOrder(query, req.query.sort);
-    } else {
-        query = applySortingOrder(query, "-createAt");
-    }
-
-    // Validate pagination parameters
-    const { page, limit } = validatePaginationParams(
-        req.query.page,
-        req.query.limit,
-        res,
-    );
-    if (!page || !limit) return;
-
-    const pagination = await applyPagination(query, page, limit);
-
     try {
-        const companies = await query;
+        const request = req as RequestWithAuth;
+
+        const comparisonQuery = buildComparisonQuery(request.query);
+
+        const baseQuery =
+            CompanyModel.find(comparisonQuery).populate("sessions");
+        const total = await CompanyModel.countDocuments();
+
+        console.log(total);
+
+        const result = await filterAndPaginate({
+            request: req,
+            response: res,
+            baseQuery,
+            total,
+        });
+
+        if (!result) return;
+
+        const companies = await result.query;
+
         res.status(200).json({
             success: true,
             count: companies.length,
-            pagination,
+            pagination: result.pagination,
             data: companies,
         });
     } catch (err) {

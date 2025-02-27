@@ -1,13 +1,11 @@
+import { RequestWithAuth } from "@/types/Request";
+import { POSTRegisterInterviewSessionRequest } from "@/types/api/v1/sessions/POST";
+import { PUTUpdateInterviewSessionRequest } from "@/types/api/v1/sessions/PUT";
 import { NextFunction, Request, Response } from "express";
-import { Query } from "mongoose";
-import { InterviewSessionModel } from "../models/InterviewSession";
-import { CompanyModel } from "../models/Company";
-import { AuthRequest } from "../types/Request";
-import { applyFieldSelection } from "src/utils/applyFieldSelection";
-import { applyPagination } from "src/utils/applyPagination";
-import { applySortingOrder } from "src/utils/applySortingOrder";
-import { buildComparisonQuery } from "src/utils/buildComparisonQuery";
-import { validatePaginationParams } from "src/utils/validatePaginationParams";
+import { CompanyModel } from "@/models/Company";
+import { InterviewSessionModel } from "@/models/InterviewSession";
+import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
+import { filterAndPaginate } from "@/utils/filterAndPaginate";
 
 // @desc    Get all interview sessions
 // @route   GET /api/v1/sessions
@@ -18,51 +16,33 @@ export const getInterviewSessions = async (
     next: NextFunction,
 ): Promise<void> => {
     try {
-        // Filter and parse query parameters for comparisons
-        const comparisonQuery = buildComparisonQuery(req.query);
-        
-        const user = (req as AuthRequest).user;
-        let query: Query<any[], any>;
+        const request = req as RequestWithAuth;
 
-        if (user?.role !== "admin") {
-            // For regular users, only show their own sessions
-            comparisonQuery.user = user?.id;
-            query = InterviewSessionModel.find(comparisonQuery).populate(
-                "company",
-            );
-        } else {
-            // For admins, show all sessions
-            query = InterviewSessionModel.find(comparisonQuery).populate("company user");
+        const comparisonQuery = buildComparisonQuery(request.query);
+
+        if (request.user.role !== "admin") {
+            comparisonQuery.user = String(request.user.id);
         }
 
-        // Handle field selection
-        if (req.query.select && typeof req.query.select === "string") {
-            query = applyFieldSelection(query, req.query.select);
-        }
-
-        // Handle sorting
-        if (req.query.sort && typeof req.query.sort === "string") {
-            query = applySortingOrder(query, req.query.sort);
-        } else {
-            query = applySortingOrder(query, "-createdAt");
-        }
-
-        // Validate pagination parameters
-        const { page, limit } = validatePaginationParams(
-            req.query.page,
-            req.query.limit,
-            res,
+        const baseQuery = InterviewSessionModel.find(comparisonQuery).populate(
+            request.user.role === "admin" ? "company user" : "company",
         );
 
-        if (!page || !limit) return;
+        const result = await filterAndPaginate({
+            request,
+            response: res,
+            baseQuery,
+            total: await InterviewSessionModel.countDocuments(comparisonQuery),
+        });
 
-        const pagination = await applyPagination(query, page, limit);
+        if (!result) return;
 
-        const sessions = await query;
+        const sessions = await result.query;
+
         res.status(200).json({
             success: true,
             count: sessions.length,
-            pagination,
+            pagination: result.pagination,
             data: sessions,
         });
     } catch (err) {
@@ -104,7 +84,7 @@ export const getInterviewSession = async (
 };
 
 // @desc    Add interview session
-// @route   POST /api/v1/users/:userId/interviewSessions
+// @route   POST /api/v1/sessions
 // @access  Private
 export const addInterviewSession = async (
     req: Request,
@@ -112,37 +92,49 @@ export const addInterviewSession = async (
     next: NextFunction,
 ): Promise<void> => {
     try {
-        req.body.user = req.params.userId;
-        const companies = await CompanyModel.findById(req.params.userId);
+        const request = req as POSTRegisterInterviewSessionRequest;
+
+        const companies = await CompanyModel.findById(request.body.company);
 
         if (!companies) {
             res.status(404).json({
                 success: false,
-                message: `No company found with id ${req.params.userId}`,
+                message: `No company found with id ${request.body.company}`,
             });
+
             return;
         }
 
-        const user = (req as AuthRequest).user;
+        request.body.user = request.user.id;
 
-        // Add user ID to request body
-        req.body.user = user?.id;
-
-        // Check for existing interview sessions
         const existingSessions = await InterviewSessionModel.find({
-            user: user?.id,
+            user: request.user.id,
         });
 
         // If user is not an admin, they can only create up to 3 interview sessions
-        if (existingSessions.length >= 3 && user?.role !== "admin") {
+        if (existingSessions.length >= 3 && request.user.role !== "admin") {
             res.status(400).json({
                 success: false,
-                message: `User with ID ${user?.id} has already created 3 interview sessions`,
+                message: `User with ID ${request.user.id} has reached the maximum number of interview sessions`,
+            });
+
+            return;
+        }
+
+        const startDate = new Date("2022-05-10T00:00:00Z");
+        const endDate = new Date("2022-05-13T23:59:59Z");
+
+        if (request.body.date < startDate || request.body.date > endDate) {
+            res.status(400).json({
+                success: false,
+                message: `Interview sessions can only be scheduled from May 10th to May 13th, 2022`,
             });
             return;
         }
 
-        const interviewSession = await InterviewSessionModel.create(req.body);
+        const interviewSession = await InterviewSessionModel.create(
+            request.body,
+        );
         res.status(201).json({
             success: true,
             data: interviewSession,
@@ -161,9 +153,8 @@ export const updateInterviewSession = async (
     next: NextFunction,
 ): Promise<void> => {
     try {
-        let session = await InterviewSessionModel.findById(req.params.id);
-
-        const user = (req as AuthRequest).user;
+        const request = req as PUTUpdateInterviewSessionRequest;
+        let session = await InterviewSessionModel.findById(request.params.id);
 
         if (!session) {
             res.status(404).json({
@@ -174,16 +165,16 @@ export const updateInterviewSession = async (
         }
 
         if (
-            user?.role !== "admin" &&
-            session.user.toString() !== user?.id
+            request.user?.role !== "admin" &&
+            session.user.toString() !== String(request.user?.id)
         ) {
             res.status(403).json({ success: false, message: "Not authorized" });
             return;
         }
 
         session = await InterviewSessionModel.findByIdAndUpdate(
-            req.params.id,
-            req.body,
+            request.params.id,
+            request.body,
             { new: true, runValidators: true },
         );
 
@@ -202,9 +193,8 @@ export const deleteInterviewSession = async (
     next: NextFunction,
 ): Promise<void> => {
     try {
-        const session = await InterviewSessionModel.findById(req.params.id);
-
-        const user = (req as AuthRequest).user;
+        const request = req as RequestWithAuth;
+        const session = await InterviewSessionModel.findById(request.params.id);
 
         if (!session) {
             res.status(404).json({
@@ -215,13 +205,13 @@ export const deleteInterviewSession = async (
         }
 
         if (
-            user?.role !== "admin" &&
-            session.user.toString() !== user?.id
+            request.user?.role !== "admin" &&
+            session.user.toString() !== String(request.user?.id)
         ) {
             res.status(403).json({ success: false, message: "Not authorized" });
         }
 
-        await InterviewSessionModel.deleteOne({ _id: req.params.id });
+        await InterviewSessionModel.deleteOne({ _id: request.params.id });
 
         res.status(200).json({ success: true, data: {} });
     } catch (err) {

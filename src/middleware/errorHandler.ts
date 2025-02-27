@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
 import { MongoServerError } from "mongodb"; // Import MongoDB error class
 import { MongooseError } from "mongoose";
 
@@ -13,16 +13,22 @@ export const errorHandler = (
     let statusCode = res.statusCode !== 200 ? res.statusCode : 500;
     let message = "Server Error";
 
-    if (err instanceof Error) {
-        message = err.message;
-    }
-
-    if (err instanceof MongoServerError) {
-        statusCode = 400;
-        message = `MongoDB Error: ${err.message}`;
-    } else if (err instanceof MongooseError) {
-        statusCode = 400;
-        message = `Mongoose Error: ${err.message}`;
+    switch (err?.constructor) {
+        case Error:
+            message = (err as Error).message;
+            break;
+        case MongoServerError:
+            statusCode = 400;
+            if ((err as MongoServerError).code === 11000) {
+                message = `Duplicate field value entered: ${Object.keys((err as MongoServerError).keyValue).join(", ")}`;
+            } else {
+                message = `MongoDB Error: ${(err as MongoServerError).message}`;
+            }
+            break;
+        case MongooseError:
+            statusCode = 400;
+            message = `Mongoose Error: ${(err as MongooseError).message}`;
+            break;
     }
 
     res.status(statusCode).json({

@@ -1,10 +1,8 @@
-import jwt from "jsonwebtoken";
-
-import { JwtPayload } from "jsonwebtoken";
-import { UserModel } from "../models/User";
 import { NextFunction, Request, Response } from "express";
-import { User } from "../types/User";
-import { AuthRequest } from "../types/Request";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { RequestWithAuth } from "@/types/Request";
+import { UserModel } from "@/models/User";
+import { User } from "@/types/User";
 
 export const protect = async (
     req: Request,
@@ -12,6 +10,8 @@ export const protect = async (
     next: NextFunction,
 ): Promise<void> => {
     let token: string | undefined;
+
+    const request = req as RequestWithAuth;
 
     if (!process.env.JWT_SECRET)
         throw new Error("JWT_SECRET must be defined in .env file");
@@ -37,9 +37,7 @@ export const protect = async (
             process.env.JWT_SECRET,
         ) as jwt.JwtPayload;
 
-        (req as AuthRequest).user = (await UserModel.findById(
-            decoded.id,
-        )) as User;
+        request.user = (await UserModel.findById(decoded.id)) as User;
 
         next();
     } catch (err) {
@@ -57,7 +55,9 @@ export const protect = async (
 
 export const authorize = (...roles: string[]) => {
     return (req: Request, res: Response, next: NextFunction): void => {
-        const user = (req as AuthRequest).user;
+        const request = req as RequestWithAuth;
+
+        const user = request.user;
 
         if (!user) {
             res.status(401).json({

@@ -5,8 +5,8 @@ import {
     addInterviewSession,
     updateInterviewSession,
     deleteInterviewSession,
-} from "../controllers/interviewSessions";
-import { protect, authorize } from "../middleware/auth";
+} from "@/controllers/interviewSessions";
+import { protect, authorize } from "@/middleware/auth";
 
 const router = Router({ mergeParams: true });
 

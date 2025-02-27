@@ -3,10 +3,10 @@ import cookieParser from "cookie-parser";
 import * as dotenv from "dotenv";
 
 import { connectDB } from "../config/db";
-import { authRouter } from "./routes/auth";
-import { companiesRouter } from "./routes/companies";
-import { interviewSessionsRouter } from "./routes/interviewSessions";
-import { errorHandler } from "./middleware/errorHandler";
+import { authRouter } from "@/routes/auth";
+import { companiesRouter } from "@/routes/companies";
+import { interviewSessionsRouter } from "@/routes/interviewSessions";
+import { errorHandler } from "@/middleware/errorHandler";
 
 dotenv.config({ path: "./config/config.env" });
 
