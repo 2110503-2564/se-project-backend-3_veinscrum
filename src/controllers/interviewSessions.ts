@@ -54,7 +54,7 @@ export const getInterviewSession = async (
         const interviewSession = await InterviewSessionModel.findById(
             req.params.id,
         ).populate({
-            path: "candidate",
+            path: "user",
             select: "name email",
         });
 
@@ -76,7 +76,7 @@ export const getInterviewSession = async (
 };
 
 // @desc    Add interview session
-// @route   POST /api/v1/candidates/:candidateId/interviewSessions
+// @route   POST /api/v1/users/:userId/interviewSessions
 // @access  Private
 export const addInterviewSession = async (
     req: Request,
@@ -84,13 +84,13 @@ export const addInterviewSession = async (
     next: NextFunction,
 ): Promise<void> => {
     try {
-        req.body.candidate = req.params.candidateId;
-        const candidate = await CompanyModel.findById(req.params.candidateId);
+        req.body.user = req.params.userId;
+        const companies = await CompanyModel.findById(req.params.userId);
 
-        if (!candidate) {
+        if (!companies) {
             res.status(404).json({
                 success: false,
-                message: `No candidate found with ID ${req.params.candidateId}`,
+                message: `No company found with id ${req.params.userId}`,
             });
             return;
         }
