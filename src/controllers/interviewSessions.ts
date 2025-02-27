@@ -3,38 +3,66 @@ import { Query } from "mongoose";
 import { InterviewSessionModel } from "../models/InterviewSession";
 import { CompanyModel } from "../models/Company";
 import { AuthRequest } from "../types/Request";
-
-
-// Define the EXCLUDED_QUERY_FIELDS for query filtering
-const EXCLUDED_QUERY_FIELDS = ["select", "sort", "page", "limit"];
-
-/* routes */
+import { applyFieldSelection } from "src/utils/applyFieldSelection";
+import { applyPagination } from "src/utils/applyPagination";
+import { applySortingOrder } from "src/utils/applySortingOrder";
+import { buildComparisonQuery } from "src/utils/buildComparisonQuery";
+import { validatePaginationParams } from "src/utils/validatePaginationParams";
 
 // @desc    Get all interview sessions
-// @route   GET /api/v1/interviewSessions
+// @route   GET /api/v1/sessions
 // @access  Registered users can view their own sessions, admins can view all
 export const getInterviewSessions = async (
     req: Request,
     res: Response,
     next: NextFunction,
 ): Promise<void> => {
-    let query: Query<any[], any>;
-
-    const user = (req as AuthRequest).user;
-
-    if (user?.role !== "admin") {
-        query = InterviewSessionModel.find({ user: user?.id }).populate(
-            "company",
-        );
-    } else {
-        query = InterviewSessionModel.find().populate("company user");
-    }
-
     try {
+        // Filter and parse query parameters for comparisons
+        const comparisonQuery = buildComparisonQuery(req.query);
+        
+        const user = (req as AuthRequest).user;
+        let query: Query<any[], any>;
+
+        if (user?.role !== "admin") {
+            // For regular users, only show their own sessions
+            comparisonQuery.user = user?.id;
+            query = InterviewSessionModel.find(comparisonQuery).populate(
+                "company",
+            );
+        } else {
+            // For admins, show all sessions
+            query = InterviewSessionModel.find(comparisonQuery).populate("company user");
+        }
+
+        // Handle field selection
+        if (req.query.select && typeof req.query.select === "string") {
+            query = applyFieldSelection(query, req.query.select);
+        }
+
+        // Handle sorting
+        if (req.query.sort && typeof req.query.sort === "string") {
+            query = applySortingOrder(query, req.query.sort);
+        } else {
+            query = applySortingOrder(query, "-createdAt");
+        }
+
+        // Validate pagination parameters
+        const { page, limit } = validatePaginationParams(
+            req.query.page,
+            req.query.limit,
+            res,
+        );
+
+        if (!page || !limit) return;
+
+        const pagination = await applyPagination(query, page, limit);
+
         const sessions = await query;
         res.status(200).json({
             success: true,
             count: sessions.length,
+            pagination,
             data: sessions,
         });
     } catch (err) {
@@ -43,7 +71,7 @@ export const getInterviewSessions = async (
 };
 
 // @desc    Get single interview session
-// @route   GET /api/v1/interviewSessions/:id
+// @route   GET /api/v1/sessions/:id
 // @access  Public
 export const getInterviewSession = async (
     req: Request,
@@ -125,7 +153,7 @@ export const addInterviewSession = async (
 };
 
 // @desc    Update interview session
-// @route   PUT /api/v1/interviewSessions/:id
+// @route   PUT /api/v1/sessions/:id
 // @access  Users can edit their own sessions, admins can edit any
 export const updateInterviewSession = async (
     req: Request,
@@ -166,7 +194,7 @@ export const updateInterviewSession = async (
 };
 
 // @desc    Delete interview session
-// @route   DELETE /api/v1/interviewSessions/:id
+// @route   DELETE /api/v1/sessions/:id
 // @access  Users can delete their own sessions, admins can delete any
 export const deleteInterviewSession = async (
     req: Request,
@@ -199,97 +227,4 @@ export const deleteInterviewSession = async (
     } catch (err) {
         next(err);
     }
-};
-
-/* Helper functions */
-
-// Set fields to select from the query
-const applyFieldSelection = (
-    query: Query<any[], any>,
-    select: string,
-): Query<any[], any> => {
-    const fields = select.split(",").join(" ");
-    query = query.select(fields);
-    return query;
-};
-
-// Set sorting order for the query
-const applySortingOrder = (
-    query: Query<any[], any>,
-    sort: string,
-): Query<any[], any> => {
-    const sortBy = sort.split(",").join(" ");
-    query = query.sort(sortBy);
-    return query;
-};
-
-// Validate and parse pagination parameters
-const validatePaginationParams = (
-    pageParam: any,
-    limitParam: any,
-    res: Response,
-): { page: number | null; limit: number | null } => {
-    const page = parseInt(pageParam as string, 10) || 1;
-    const limit = parseInt(limitParam as string, 10) || 25;
-
-    if (isNaN(page) || page <= 0) {
-        res.status(400).json({
-            success: false,
-            message: "Invalid page number",
-        });
-        return { page: null, limit: null };
-    }
-
-    if (isNaN(limit) || limit <= 0) {
-        res.status(400).json({
-            success: false,
-            message: "Invalid limit number",
-        });
-        return { page: null, limit: null };
-    }
-
-    return { page, limit };
-};
-
-// Apply pagination logic to the query
-const applyPagination = async (
-    query: Query<any[], any>,
-    page: number,
-    limit: number,
-): Promise<PaginationResult> => {
-    const startIndex = (page - 1) * limit;
-    const total = await InterviewSessionModel.countDocuments();
-
-    const paginationResult: PaginationResult = {};
-
-    if (startIndex + limit < total) {
-        paginationResult.next = { page: page + 1, limit };
-    }
-
-    if (startIndex > 0) {
-        paginationResult.prev = { page: page - 1, limit };
-    }
-
-    query = query.skip(startIndex).limit(limit);
-
-    return paginationResult;
-};
-
-// Build the comparison query by adding MongoDB operators
-const buildComparisonQuery = (query: qs.ParsedQs): qs.ParsedQs => {
-    const filteredQuery: qs.ParsedQs = {};
-
-    for (const key in query) {
-        if (query.hasOwnProperty(key) && !EXCLUDED_QUERY_FIELDS.includes(key)) {
-            filteredQuery[key] = query[key];
-        }
-    }
-
-    // Convert comparison operators to MongoDB query operators
-    return JSON.parse(
-        JSON.stringify(filteredQuery).replace(
-            /\b(gt|gte|lt|lte|in)\b/g,
-            (match) => `$${match}`,
-        ),
-    );
 };

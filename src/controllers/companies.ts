@@ -3,10 +3,11 @@ import { Query } from "mongoose";
 import { Company } from "../types/Company";
 import { CompanyModel } from "../models/Company";
 import { InterviewSessionModel } from "../models/InterviewSession";
-
-const EXCLUDED_QUERY_FIELDS = ["select", "sort", "page", "limit"];
-
-/* routes */
+import { applyFieldSelection } from "src/utils/applyFieldSelection";
+import { applyPagination } from "src/utils/applyPagination";
+import { applySortingOrder } from "src/utils/applySortingOrder";
+import { buildComparisonQuery } from "src/utils/buildComparisonQuery";
+import { validatePaginationParams } from "src/utils/validatePaginationParams";
 
 /// @desc     Get companies (query is allowed)
 /// @route    GET /api/v1/companies
@@ -162,97 +163,3 @@ export async function deleteCompany(
         next(err);
     }
 }
-
-/* Helper functions */
-
-// Set fields to select from the query
-const applyFieldSelection = (
-    query: Query<Company[], Company>,
-    select: string,
-): Query<Company[], Company> => {
-    const fields = select.split(",").join(" ");
-    query = query.select(fields);
-
-    return query;
-};
-
-// Set sorting order for the query
-const applySortingOrder = (
-    query: Query<Company[], Company>,
-    sort: string,
-): Query<Company[], Company> => {
-    const sortBy = sort.split(",").join(" ");
-    query = query.sort(sortBy);
-    return query;
-};
-
-// Validate and parse pagination parameters
-const validatePaginationParams = (
-    pageParam: any,
-    limitParam: any,
-    res: Response,
-): { page: number | null; limit: number | null } => {
-    const page = parseInt(pageParam as string, 10) || 1;
-    const limit = parseInt(limitParam as string, 10) || 25;
-
-    if (isNaN(page) || page <= 0) {
-        res.status(400).json({
-            success: false,
-            message: "Invalid page number",
-        });
-        return { page: null, limit: null };
-    }
-
-    if (isNaN(limit) || limit <= 0) {
-        res.status(400).json({
-            success: false,
-            message: "Invalid limit number",
-        });
-        return { page: null, limit: null };
-    }
-
-    return { page, limit };
-};
-
-// Apply pagination logic to the query
-const applyPagination = async (
-    query: Query<Company[], Company>,
-    page: number,
-    limit: number,
-): Promise<PaginationResult> => {
-    const startIndex = (page - 1) * limit;
-    const total = await CompanyModel.countDocuments();
-
-    const paginationResult: PaginationResult = {};
-
-    if (startIndex + limit < total) {
-        paginationResult.next = { page: page + 1, limit };
-    }
-
-    if (startIndex > 0) {
-        paginationResult.prev = { page: page - 1, limit };
-    }
-
-    query = query.skip(startIndex).limit(limit);
-
-    return paginationResult;
-};
-
-// Build the comparison query by adding MongoDB operators
-const buildComparisonQuery = (query: qs.ParsedQs): qs.ParsedQs => {
-    const filteredQuery: qs.ParsedQs = {};
-
-    for (const key in query) {
-        if (query.hasOwnProperty(key) && !EXCLUDED_QUERY_FIELDS.includes(key)) {
-            filteredQuery[key] = query[key];
-        }
-    }
-
-    // Convert comparison operators to MongoDB query operators
-    return JSON.parse(
-        JSON.stringify(filteredQuery).replace(
-            /\b(gt|gte|lt|lte|in)\b/g,
-            (match) => `$${match}`,
-        ),
-    );
-};
