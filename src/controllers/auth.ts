@@ -105,6 +105,22 @@ export const login = async (
     }
 };
 
+/// @desc     Logout user
+/// @route    GET /api/v1/auth/logout
+/// @access   Private
+export const logout = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    res.cookie("token", "none", {
+        expires: new Date(Date.now() + 10 * 1000),
+        httpOnly: true,
+    });
+
+    res.status(200).json({ success: true, data: {} });
+};
+
 /// @desc     Get current logged in user
 /// @route    GET /api/v1/auth/me
 /// @access   Private
