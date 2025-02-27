@@ -1,6 +1,6 @@
 import { Request } from "express";
-import { User } from "./User";
+import { User } from "@/types/User";
 
-export interface AuthRequest extends Request {
+export interface RequestWithAuth extends Request {
     user: User;
 }

@@ -1,6 +1,7 @@
-import { Document } from "mongoose";
+import { Document, ObjectId } from "mongoose";
 
 interface User extends Document {
+    id: ObjectId;
     name: string;
     email: string;
     tel: string;
