@@ -1,3 +1,5 @@
+import { Response } from "express";
+
 export function validatePaginationParams(
     pageParam: any,
     limitParam: any,
