@@ -218,3 +218,43 @@ export const deleteInterviewSession = async (
         next(err);
     }
 };
+
+export const getInterviewSessionsByCompany = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const request = req as RequestWithAuth;
+
+        const comparisonQuery = buildComparisonQuery(request.query);
+
+        if (request.user.role !== "admin") {
+            comparisonQuery.user = String(request.user.id);
+        }
+
+        const baseQuery = InterviewSessionModel.find(comparisonQuery).populate(
+            request.user.role === "admin" ? "company user" : "company",
+        );
+
+        const result = await filterAndPaginate({
+            request,
+            response: res,
+            baseQuery,
+            total: await InterviewSessionModel.countDocuments(comparisonQuery),
+        });
+
+        if (!result) return;
+
+        const sessions = await result.query;
+
+        res.status(200).json({
+            success: true,
+            count: sessions.length,
+            pagination: result.pagination,
+            data: sessions,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
