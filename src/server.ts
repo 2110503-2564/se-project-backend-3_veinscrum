@@ -1,12 +1,15 @@
-import express from "express";
-import cookieParser from "cookie-parser";
-import * as dotenv from "dotenv";
-
-import { connectDB } from "../config/db";
+import { errorHandler } from "@/middleware/errorHandler";
 import { authRouter } from "@/routes/auth";
 import { companiesRouter } from "@/routes/companies";
 import { interviewSessionsRouter } from "@/routes/interviewSessions";
-import { errorHandler } from "@/middleware/errorHandler";
+import cookieParser from "cookie-parser";
+import * as dotenv from "dotenv";
+import express from "express";
+import mongoSanitize from "express-mongo-sanitize";
+import { xss } from "express-xss-sanitizer";
+import helmet from "helmet";
+import { connectDB } from "../config/db";
+import hpp from "hpp";
 
 dotenv.config({ path: "./config/config.env" });
 
@@ -16,6 +19,10 @@ const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(mongoSanitize());
+app.use(helmet());
+app.use(xss());
+app.use(hpp());
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/companies", companiesRouter);
