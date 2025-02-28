@@ -124,7 +124,10 @@ export const addInterviewSession = async (
         const startDate = new Date("2022-05-10T00:00:00Z");
         const endDate = new Date("2022-05-13T23:59:59Z");
 
-        if (request.body.date < startDate || request.body.date > endDate) {
+        if (
+            new Date(request.body.date) < startDate ||
+            new Date(request.body.date) > endDate
+        ) {
             res.status(400).json({
                 success: false,
                 message: `Interview sessions can only be scheduled from May 10th to May 13th, 2022`,
