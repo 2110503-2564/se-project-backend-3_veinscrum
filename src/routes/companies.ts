@@ -14,13 +14,13 @@ const router = Router();
 router
     .route("/")
     .get(getCompanies)
-    .post(protect, authorize("user", "admin"), createCompany);
+    .post(protect, authorize("admin"), createCompany);
 
 router
     .route("/:id")
     .get(getCompany)
-    .put(protect, authorize("user", "admin"), updateCompany)
-    .delete(protect, authorize("user", "admin"), deleteCompany);
+    .put(protect, authorize("admin"), updateCompany)
+    .delete(protect, authorize("admin"), deleteCompany);
 
 router.get(
     "/:id/sessions",
