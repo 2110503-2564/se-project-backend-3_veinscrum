@@ -11,24 +11,22 @@ export const errorHandler = (
     console.error(err);
 
     let statusCode = res.statusCode !== 200 ? res.statusCode : 500;
-    let message = "Server Error";
+    let message: string;
 
-    switch (err?.constructor) {
-        case Error:
-            message = (err as Error).message;
-            break;
-        case MongoServerError:
-            statusCode = 400;
-            if ((err as MongoServerError).code === 11000) {
-                message = `Duplicate field value entered: ${Object.keys((err as MongoServerError).keyValue).join(", ")}`;
-            } else {
-                message = `MongoDB Error: ${(err as MongoServerError).message}`;
-            }
-            break;
-        case MongooseError:
-            statusCode = 400;
-            message = `Mongoose Error: ${(err as MongooseError).message}`;
-            break;
+    if (err instanceof MongoServerError) {
+        statusCode = 400;
+        if ((err as MongoServerError).code === 11000) {
+            message = `Duplicate field value entered: ${Object.keys((err as MongoServerError).keyValue).join(", ")}`;
+        } else {
+            message = `MongoDB Error: ${(err as MongoServerError).message}`;
+        }
+    } else if (err instanceof MongooseError) {
+        statusCode = 400;
+        message = `Mongoose Error: ${(err as MongooseError).message}`;
+    } else if (err instanceof Error) {
+        message = (err as Error).message;
+    } else {
+        message = "Server Error";
     }
 
     res.status(statusCode).json({
