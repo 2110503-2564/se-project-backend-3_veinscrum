@@ -83,10 +83,10 @@ export const getInterviewSession = async (
     }
 };
 
-// @desc    Add interview session
+// @desc    Create interview session
 // @route   POST /api/v1/sessions
 // @access  Private
-export const addInterviewSession = async (
+export const createInterviewSession = async (
     req: Request,
     res: Response,
     next: NextFunction,

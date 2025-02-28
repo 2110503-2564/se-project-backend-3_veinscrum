@@ -1,19 +1,19 @@
-import { Router } from "express";
 import {
-    getInterviewSessions,
-    getInterviewSession,
-    addInterviewSession,
-    updateInterviewSession,
+    createInterviewSession,
     deleteInterviewSession,
+    getInterviewSession,
+    getInterviewSessions,
+    updateInterviewSession,
 } from "@/controllers/interviewSessions";
-import { protect, authorize } from "@/middleware/auth";
+import { authorize, protect } from "@/middleware/auth";
+import { Router } from "express";
 
 const router = Router({ mergeParams: true });
 
 router
     .route("/")
     .get(protect, getInterviewSessions)
-    .post(protect, authorize("admin", "user"), addInterviewSession);
+    .post(protect, authorize("admin", "user"), createInterviewSession);
 
 router
     .route("/:id")
