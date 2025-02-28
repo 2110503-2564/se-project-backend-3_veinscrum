@@ -49,7 +49,7 @@ export const register = async (
             role,
         });
 
-        sendTokenResponse(user, 200, res);
+        sendTokenResponse(user, 201, res);
     } catch (err) {
         next(err);
     }

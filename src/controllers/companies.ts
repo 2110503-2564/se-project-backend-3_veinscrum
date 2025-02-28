@@ -22,8 +22,6 @@ export const getCompanies = async (
             CompanyModel.find(comparisonQuery).populate("sessions");
         const total = await CompanyModel.countDocuments();
 
-        console.log(total);
-
         const result = await filterAndPaginate({
             request: req,
             response: res,
