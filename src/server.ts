@@ -3,6 +3,7 @@ import { authRouter } from "@/routes/auth";
 import { companiesRouter } from "@/routes/companies";
 import { interviewSessionsRouter } from "@/routes/interviewSessions";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import * as dotenv from "dotenv";
 import express from "express";
 import mongoSanitize from "express-mongo-sanitize";
@@ -11,7 +12,7 @@ import helmet from "helmet";
 import { connectDB } from "../config/db";
 import hpp from "hpp";
 
-dotenv.config({ path: "./config/config.env" });
+dotenv.config();
 
 connectDB();
 
@@ -23,6 +24,12 @@ app.use(mongoSanitize());
 app.use(helmet());
 app.use(xss());
 app.use(hpp());
+app.use(
+    cors({
+        origin: process.env.CORS_ORIGIN,
+        credentials: true,
+    }),
+);
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/companies", companiesRouter);
