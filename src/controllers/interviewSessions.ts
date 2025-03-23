@@ -261,3 +261,33 @@ export const getInterviewSessionsByCompany = async (
         next(err);
     }
 };
+
+export const getInterviewSessionsByUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const interviewSession = await InterviewSessionModel.find({
+            user: req.params.id,
+        }).populate({
+            path: "user",
+            select: "name email",
+        });
+
+        if (!interviewSession) {
+            res.status(404).json({
+                success: false,
+                message: `No interview session found with user-id ${req.params.id}`,
+            });
+            return;
+        }
+
+        res.status(200).json({
+            success: true,
+            data: interviewSession,
+        });
+    } catch (error) {
+        next(error); // Pass the error to the next middleware
+    }
+};

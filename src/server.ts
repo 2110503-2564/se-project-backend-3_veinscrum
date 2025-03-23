@@ -11,6 +11,7 @@ import { xss } from "express-xss-sanitizer";
 import helmet from "helmet";
 import { connectDB } from "../config/db";
 import hpp from "hpp";
+import { usersRouter } from "./routes/users";
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use(
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/companies", companiesRouter);
 app.use("/api/v1/sessions", interviewSessionsRouter);
+app.use("/api/v1/users", usersRouter);
 
 app.use(errorHandler);
 
