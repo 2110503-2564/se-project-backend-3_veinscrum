@@ -22,6 +22,10 @@ async function applyPagination<T extends Document>(
 
     const paginationResult: PaginationResult = {};
 
+    if (limit == -1) {
+        return paginationResult;
+    }
+
     if (startIndex + limit < total) {
         paginationResult.next = { page: page + 1, limit };
     }
@@ -58,8 +62,17 @@ function validatePaginationParams(
     limitParam: unknown,
     res: Response,
 ): { page: number | null; limit: number | null } {
-    const page = parseInt(pageParam as string, 10) || 1;
-    const limit = parseInt(limitParam as string, 10) || 25;
+    let page = parseInt(pageParam as string, 10) || 1;
+    let limit = parseInt(limitParam as string, 10) || 25;
+
+    if (limit == -1 && page != 1) {
+        res.status(400).json({
+            success: false,
+            message:
+                "For a complete list load, the page must always be set to 1.",
+        });
+        return { page: null, limit: null };
+    }
 
     if (isNaN(page) || page <= 0) {
         res.status(400).json({
@@ -69,7 +82,7 @@ function validatePaginationParams(
         return { page: null, limit: null };
     }
 
-    if (isNaN(limit) || limit <= 0) {
+    if (isNaN(limit) || limit < -1 || limit == 0) {
         res.status(400).json({
             success: false,
             message: "Invalid limit number",
