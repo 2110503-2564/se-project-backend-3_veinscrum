@@ -270,10 +270,15 @@ export const getInterviewSessionsByUser = async (
     try {
         const interviewSession = await InterviewSessionModel.find({
             user: req.params.id,
-        }).populate({
-            path: "user",
-            select: "name email",
-        });
+        }).populate([
+            {
+                path: "user",
+                select: "name email",
+            },
+            {
+                path: "company",
+            },
+        ]);
 
         if (!interviewSession) {
             res.status(404).json({
