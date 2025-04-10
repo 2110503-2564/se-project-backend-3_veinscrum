@@ -25,4 +25,3 @@ const JobListingSchema = new mongoose.Schema<JobListing>({
 });
 
 export const JobListingModel = mongoose.model("JobListing", JobListingSchema);
-
