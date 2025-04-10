@@ -7,4 +7,3 @@ interface JobListing extends Document<mongoose.Types.ObjectId> {
     description: string;
     createdAt: Date;
 }
-
