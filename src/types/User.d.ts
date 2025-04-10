@@ -5,7 +5,8 @@ interface User extends Document {
     name: string;
     email: string;
     tel: string;
-    role: "user" | "admin";
+    role: "user" | "admin" | "company";
+    company: ObjectId;
     password: string;
     resetPasswordToken?: string;
     resetPasswordExpire?: Date;
