@@ -2,9 +2,9 @@ import * as mongoose from "mongoose";
 import { InterviewSession } from "@/types/InterviewSession";
 
 const InterviewSessionSchema = new mongoose.Schema<InterviewSession>({
-    company: {
+    jobListing: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Company",
+        ref: "JobListing",
         required: true,
     },
     user: {

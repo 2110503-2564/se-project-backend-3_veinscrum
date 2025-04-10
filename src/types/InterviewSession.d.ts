@@ -1,7 +1,7 @@
 import { Document, ObjectId } from "mongoose";
 
 interface InterviewSession extends Document {
-    company: ObjectId;
+    jobListing: ObjectId;
     user: ObjectId;
     date: Date;
     createdAt: Date;
