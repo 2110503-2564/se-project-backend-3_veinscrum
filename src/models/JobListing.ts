@@ -3,22 +3,29 @@ import { JobListing } from "@/types/JobListing";
 
 const JobListingSchema = new mongoose.Schema<JobListing>({
     company:{
-        type: mongoose.Schema.Types.ObjectId
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Company",
+        required: true,
     },
     jobTitle:{
-        type: String
+        type: String,
+        required: [true, "Please add job title"],
     },
     description:{
-        type: String
+        type: String,
+        required: [true, "Please add description"],
     },
     requirement:{
-        type: String
+        type: String,
+        required: [true, "Please add requirement"],
     },
     contactDetail:{
-        type: String
+        type: String,
+        required: [true, "Please add contact detail"],
     },
     createdAt: {
-        type: Date
+        type: Date,
+        default: Date.now,
     }
 })
 
