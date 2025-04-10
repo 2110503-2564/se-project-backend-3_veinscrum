@@ -1,8 +1,8 @@
-import mongoose, { Document } from "mongoose";
+import { Document } from "mongoose";
 
 interface InterviewSession extends Document {
-    company: mongoose.Types.ObjectId;
-    user: mongoose.Types.ObjectId;
+    jobListing: ObjectId;
+    user: ObjectId;
     date: Date;
     createdAt: Date;
 }
