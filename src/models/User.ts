@@ -32,8 +32,8 @@ const UserSchema = new mongoose.Schema<User>({
         enum: ["user", "admin", "company"],
         default: "user",
     },
-    company:{
-        type:mongoose.Schema.Types.ObjectId,
+    company: {
+        type: mongoose.Schema.Types.ObjectId,
         default: null,
     },
     password: {
