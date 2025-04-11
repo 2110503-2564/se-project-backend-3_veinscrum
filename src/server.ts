@@ -37,7 +37,7 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/companies", companiesRouter);
 app.use("/api/v1/sessions", interviewSessionsRouter);
 app.use("/api/v1/users", usersRouter);
-app.use("/api/v1/joblistings", jobListingsRouter);
+app.use("/api/v1/job-listings", jobListingsRouter);
 
 app.use(errorHandler);
 
