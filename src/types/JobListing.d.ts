@@ -2,9 +2,8 @@ import { Document } from "mongoose";
 
 interface JobListing extends Document {
     company: ObjectId;
+    image:string;
     jobTitle: string;
-    description: string;
-    requirement: string;
-    contactDetail: string;
+    description: JSON;
     createdAt: Date;
 }

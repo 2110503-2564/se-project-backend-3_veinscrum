@@ -7,21 +7,16 @@ const JobListingSchema = new mongoose.Schema<JobListing>({
         ref: "Company",
         required: true,
     },
+    image:{
+        type: String,
+    },
     jobTitle:{
         type: String,
         required: [true, "Please add job title"],
     },
     description:{
-        type: String,
+        type: mongoose.Schema.Types.Mixed,
         required: [true, "Please add description"],
-    },
-    requirement:{
-        type: String,
-        required: [true, "Please add requirement"],
-    },
-    contactDetail:{
-        type: String,
-        required: [true, "Please add contact detail"],
     },
     createdAt: {
         type: Date,
