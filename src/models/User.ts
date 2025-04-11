@@ -34,6 +34,7 @@ const UserSchema = new mongoose.Schema<User>({
     },
     company:{
         type:mongoose.Schema.Types.ObjectId,
+        default: null,
     },
     password: {
         type: String,
