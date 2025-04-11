@@ -21,4 +21,4 @@ router
     .put(protect, authorize("admin","company"), updateJobListing)
     .delete(protect, authorize("admin","company"), deleteJobListing);
 
-export { router as joblistingsRouter };
+export { router as jobListingsRouter };
