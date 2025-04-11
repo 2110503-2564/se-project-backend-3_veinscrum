@@ -5,66 +5,38 @@ import { filterAndPaginate } from "@/utils/filterAndPaginate";
 import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
 
-/// @desc     Get job listings (query is allowed)
-/// @route    GET /api/v1/job-listings
+/// @desc     Get job listings by company
+/// @route    GET /api/v1/companies/:id/job-listings
 /// @access   Public
-export const getJobListings =  async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-): Promise<void> => {
-    try {
-        const request = req as RequestWithAuth;
-
-        const comparisonQuery = buildComparisonQuery(request.query);
-
-        const baseQuery =
-            JobListingModel.find(comparisonQuery);
-        const total = await JobListingModel.countDocuments();
-
-        const result = await filterAndPaginate({
-            request: req,
-            response: res,
-            baseQuery,
-            total,
-        });
-
-        if (!result) return;
-
-        const jobListings = await result.query;
-
-        res.status(200).json({
-            success: true,
-            count: jobListings.length,
-            pagination: result.pagination,
-            data: jobListings,
-        });
-    } catch (err) {
-        next(err);
-    }
-};
-
-/// @desc     Get job listing
-/// @route    GET /api/v1/job-listings/:id
-/// @access   Protected
-export const getJobListing = async (
+export const getJobListingByCompany = async (
     req: Request,
     res: Response,
     next: NextFunction,
 ) => {
     try {
-        const jobListing = await JobListingModel.findById(req.params.id);
+        const request = req as RequestWithAuth;
+        
+        const comparisonQuery = buildComparisonQuery(request.query);
 
-        if (!jobListing) {
-            res.status(400).json({
-                success: false,
-                message: "Job lisitng not found",
-            });
+        const baseQuery = JobListingModel.find(comparisonQuery);
 
-            return;
-        }
+        const result = await filterAndPaginate({
+            request,
+            response: res,
+            baseQuery,
+            total: await JobListingModel.countDocuments(comparisonQuery),
+        });
 
-        res.status(200).json({ success: true, data: jobListing });
+        if (!result) return;
+
+        const sessions = await result.query;
+
+        res.status(200).json({
+            success: true,
+            count: sessions.length,
+            pagination: result.pagination,
+            data: sessions,
+        });
     } catch (err) {
         next(err);
     }

@@ -8,6 +8,7 @@ import {
 } from "@/controllers/companies";
 import { authorize, protect } from "@/middleware/auth";
 import { getInterviewSessionsByCompany } from "@/controllers/interviewSessions";
+import { getJobListingByCompany } from "@/controllers/jobListing";
 
 const router = Router();
 
@@ -27,6 +28,13 @@ router.get(
     protect,
     authorize("user", "admin", "company"),
     getInterviewSessionsByCompany,
+);
+
+router.get(
+    "/:id/job-listings",
+    protect,
+    authorize("user", "admin", "company"),
+    getJobListingByCompany,
 );
 
 export { router as companiesRouter };
