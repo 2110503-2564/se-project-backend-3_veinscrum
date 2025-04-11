@@ -6,4 +6,6 @@ interface Company extends Document {
     website: string;
     description: string;
     tel: string;
+    owner: ObjectId;
+    jobListing: [ObjectId];
 }

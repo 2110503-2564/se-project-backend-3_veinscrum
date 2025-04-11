@@ -34,6 +34,13 @@ const CompanySchema = new mongoose.Schema<Company>(
                 "Please add a valid phone number in the format XXX-XXX-XXXX",
             ],
         },
+        owner: {
+            type: mongoose.Schema.Types.ObjectId,
+            required: [true, "Please add company owner"],
+        },
+        jobListing: {
+            type: [mongoose.Schema.Types.ObjectId]
+        }
     },
     {
         toJSON: { virtuals: true },
