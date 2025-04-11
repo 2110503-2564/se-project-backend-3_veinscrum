@@ -257,6 +257,7 @@ export const getInterviewSessionsByUser = async (
     }
 };
 
+<<<<<<< HEAD
 /// @desc     Get interview session by job listing
 /// @route    GET /api/v1/job-listings/:id/sessions
 /// @access   Protect
@@ -299,3 +300,9 @@ export const getInterviewSessionsByJobListing = async (
         next(err);
     }
 };
+=======
+
+/// @desc     Get interview session by job listing
+/// @route    GET /api/v1/job-listings/:id/sessions
+/// @access   Protect
+>>>>>>> 29b1e31 (feat: add getJobListingByCompany, remove getJobListings)
