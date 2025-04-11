@@ -14,18 +14,18 @@ const router = Router();
 router
     .route("/")
     .get(getCompanies)
-    .post(protect, authorize("admin"), createCompany);
+    .post(protect, authorize("admin","company"), createCompany);
 
 router
     .route("/:id")
     .get(getCompany)
-    .put(protect, authorize("admin"), updateCompany)
-    .delete(protect, authorize("admin"), deleteCompany);
+    .put(protect, authorize("admin","company"), updateCompany)
+    .delete(protect, authorize("admin","company"), deleteCompany);
 
 router.get(
     "/:id/sessions",
     protect,
-    authorize("user", "admin"),
+    authorize("user", "admin", "company"),
     getInterviewSessionsByCompany,
 );
 

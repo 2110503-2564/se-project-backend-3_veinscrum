@@ -3,7 +3,6 @@ import { RequestWithAuth } from "@/types/Request";
 import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
 import { filterAndPaginate } from "@/utils/filterAndPaginate";
 import { InterviewSessionModel } from "@/models/InterviewSession";
-import { UserModel } from "@/models/User";
 import { JobListingModel } from "@/models/JobListing";
 
 /// @desc     Get job listings (query is allowed)
@@ -70,6 +69,22 @@ export const getJobListing = async (
         next(err);
     }
 };
+
+/// @desc     Create job listing (authentication required)
+/// @route    POST /api/v1/joblisting
+/// @access   Protected
+export async function createJobListing(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) {
+    try {
+        const jobListing = await JobListingModel.create(req.body);
+        res.status(201).json({ success: true, data: jobListing });
+    } catch (err) {
+        next(err);
+    }
+}
 
 /// @desc     Update job listing (authentication required)
 /// @route    PUT /api/v1/joblistings/:id

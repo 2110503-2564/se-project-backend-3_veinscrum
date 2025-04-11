@@ -82,15 +82,6 @@ export async function createCompany(
     next: NextFunction,
 ) {
     try {
-
-        // Check if user existed and is company
-        const owner = await UserModel.findById(req.body.owner)
-
-        if(!owner || owner.role != "company"){
-            res.status(400).json({ success: false, message: "Bad owner information" });
-            return;
-        }
-
         const company = await CompanyModel.create(req.body);
         res.status(201).json({ success: true, data: company });
     } catch (err) {
