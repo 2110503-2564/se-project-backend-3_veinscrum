@@ -12,6 +12,11 @@ const InterviewSessionSchema = new mongoose.Schema<InterviewSession>({
         ref: "User",
         required: true,
     },
+    company: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Company",
+        required: true,
+    },
     date: {
         type: Date,
         required: true,
