@@ -1,0 +1,20 @@
+feat: add jobListing controller
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# Author:    Sirawit Petchsriudom <6733275621@student.chula.ac.th>
+#
+# interactive rebase in progress; onto 832ef49
+# Last commands done (8 commands done):
+#    pick 90ea1bf chore: remove package lock
+#    pick afb5c85 feat: add jobListing controller
+# Next commands to do (38 remaining commands):
+#    pick 107543f fix: change company populate from session to jobListing
+#    pick 66f2603 feat: add jobListing route
+# You are currently rebasing branch 'feat/companies' on '832ef49'.
+#
+# Changes to be committed:
+#	modified:   src/controllers/companies.ts
+#	new file:   src/controllers/jobListing.ts
+#
