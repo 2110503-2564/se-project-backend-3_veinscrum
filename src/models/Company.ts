@@ -1,6 +1,6 @@
 import { Company } from "@/types/Company";
 import * as mongoose from "mongoose";
-import "./InterviewSession";
+import "./JobListing";
 
 const CompanySchema = new mongoose.Schema<Company>(
     {
@@ -39,8 +39,8 @@ const CompanySchema = new mongoose.Schema<Company>(
             required: [true, "Please add company owner"],
         },
         jobListing: {
-            type: [mongoose.Schema.Types.ObjectId]
-        }
+            type: [mongoose.Schema.Types.ObjectId],
+        },
     },
     {
         toJSON: { virtuals: true },
@@ -48,8 +48,8 @@ const CompanySchema = new mongoose.Schema<Company>(
     },
 );
 
-CompanySchema.virtual("sessions", {
-    ref: "InterviewSession",
+CompanySchema.virtual("jobListing", {
+    ref: "JobListing",
     localField: "_id",
     foreignField: "company",
     justOne: false,
