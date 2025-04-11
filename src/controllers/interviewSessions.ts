@@ -296,3 +296,8 @@ export const getInterviewSessionsByUser = async (
         next(error); // Pass the error to the next middleware
     }
 };
+
+
+/// @desc     Get interview session by job listing
+/// @route    GET /api/v1/job-listings/:id/sessions
+/// @access   Protect
