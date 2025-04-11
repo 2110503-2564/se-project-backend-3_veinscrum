@@ -6,7 +6,7 @@ import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
 
 /// @desc     Get job listings (query is allowed)
-/// @route    GET /api/v1/joblistings
+/// @route    GET /api/v1/job-listings
 /// @access   Public
 export const getJobListings =  async (
     req: Request,
@@ -45,7 +45,7 @@ export const getJobListings =  async (
 };
 
 /// @desc     Get job listing
-/// @route    GET /api/v1/joblistings/:id
+/// @route    GET /api/v1/job-listings/:id
 /// @access   Protected
 export const getJobListing = async (
     req: Request,
@@ -71,7 +71,7 @@ export const getJobListing = async (
 };
 
 /// @desc     Create job listing (authentication required)
-/// @route    POST /api/v1/joblisting
+/// @route    POST /api/v1/job-listing
 /// @access   Protected
 export async function createJobListing(
     req: Request,
@@ -87,7 +87,7 @@ export async function createJobListing(
 }
 
 /// @desc     Update job listing (authentication required)
-/// @route    PUT /api/v1/joblistings/:id
+/// @route    PUT /api/v1/job-listings/:id
 /// @access   Protected
 export async function updateJobListing(
     req: Request,
@@ -120,7 +120,7 @@ export async function updateJobListing(
 }
 
 /// @desc     Delete job listing (authentication required)
-/// @route    DELETE /api/v1/joblistings/:id
+/// @route    DELETE /api/v1/job-listings/:id
 /// @access   Protected
 export async function deleteJobListing(
     req: Request,
