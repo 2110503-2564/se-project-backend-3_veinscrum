@@ -37,7 +37,7 @@ export const getInterviewSessions = async (
 
         if (!result) return;
 
-        const sessions = await result.query;
+        const sessions = await result.query.exec();
 
         res.status(200).json({
             success: true,
