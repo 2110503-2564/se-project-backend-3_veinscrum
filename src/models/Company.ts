@@ -38,9 +38,6 @@ const CompanySchema = new mongoose.Schema<Company>(
             type: mongoose.Schema.Types.ObjectId,
             required: [true, "Please add company owner"],
         },
-        jobListing: {
-            type: [mongoose.Schema.Types.ObjectId],
-        },
     },
     {
         toJSON: { virtuals: true },

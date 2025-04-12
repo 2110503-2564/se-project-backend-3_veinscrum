@@ -7,5 +7,4 @@ interface Company extends Document {
     description: string;
     tel: string;
     owner: ObjectId;
-    jobListing: [ObjectId];
 }
