@@ -1,13 +1,13 @@
-import { Router } from "express";
 import {
+    createCompany,
+    deleteCompany,
     getCompanies,
     getCompany,
-    createCompany,
     updateCompany,
-    deleteCompany,
 } from "@/controllers/companies";
-import { authorize, protect } from "@/middleware/auth";
 import { getInterviewSessionsByCompany } from "@/controllers/interviewSessions";
+import { authorize, protect } from "@/middleware/auth";
+import { Router } from "express";
 
 const router = Router();
 

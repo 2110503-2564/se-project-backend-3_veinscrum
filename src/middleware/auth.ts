@@ -1,8 +1,7 @@
+import { UserModel } from "@/models/User";
+import { RequestWithAuth } from "@/types/Request";
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { RequestWithAuth } from "@/types/Request";
-import { UserModel } from "@/models/User";
-import { User } from "@/types/User";
 
 export const protect = async (
     req: Request,
@@ -10,8 +9,6 @@ export const protect = async (
     next: NextFunction,
 ): Promise<void> => {
     let token: string | undefined;
-
-    const request = req as RequestWithAuth;
 
     if (!process.env.JWT_SECRET)
         throw new Error("JWT_SECRET must be defined in .env file");
@@ -25,7 +22,7 @@ export const protect = async (
     if (!token) {
         res.status(401).json({
             success: false,
-            msg: "Not authorize to access this route",
+            message: "Not authorize to access this route",
         });
 
         return;
@@ -37,7 +34,18 @@ export const protect = async (
             process.env.JWT_SECRET,
         ) as jwt.JwtPayload;
 
-        request.user = (await UserModel.findById(decoded.id)) as User;
+        const user = await UserModel.findById(decoded.id);
+
+        if (!user) {
+            res.status(401).json({
+                success: false,
+                message: "User not found",
+            });
+
+            return;
+        }
+
+        (req as RequestWithAuth).user = user;
 
         next();
     } catch (err) {
@@ -46,7 +54,7 @@ export const protect = async (
         console.error(err.stack);
         res.status(401).json({
             success: false,
-            msg: "Not authorize to access this route",
+            message: "Not authorize to access this route",
         });
 
         return;
@@ -62,7 +70,7 @@ export const authorize = (...roles: string[]) => {
         if (!user) {
             res.status(401).json({
                 success: false,
-                msg: "Not authorize to access this route",
+                message: "Not authorize to access this route",
             });
 
             return;
@@ -71,7 +79,7 @@ export const authorize = (...roles: string[]) => {
         if (!roles.includes(user.role)) {
             res.status(403).json({
                 success: false,
-                msg: `User role '${user.role}' is not authorized to access this route`,
+                message: `User role '${user.role}' is not authorized to access this route`,
             });
             return;
         }

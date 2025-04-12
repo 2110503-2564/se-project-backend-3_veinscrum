@@ -1,9 +1,9 @@
-import { NextFunction, Request, Response } from "express";
+import { CompanyModel } from "@/models/Company";
+import { InterviewSessionModel } from "@/models/InterviewSession";
 import { RequestWithAuth } from "@/types/Request";
 import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
 import { filterAndPaginate } from "@/utils/filterAndPaginate";
-import { CompanyModel } from "@/models/Company";
-import { InterviewSessionModel } from "@/models/InterviewSession";
+import { NextFunction, Request, Response } from "express";
 
 /// @desc     Get companies (query is allowed)
 /// @route    GET /api/v1/companies
@@ -31,7 +31,7 @@ export const getCompanies = async (
 
         if (!result) return;
 
-        const companies = await result.query;
+        const companies = await result.query.exec();
 
         res.status(200).json({
             success: true,

@@ -1,6 +1,6 @@
-import * as express from "express";
-import { getMe, login, register, logout } from "@/controllers/auth";
+import { getMe, login, logout, register } from "@/controllers/auth";
 import { protect } from "@/middleware/auth";
+import * as express from "express";
 
 const router = express.Router();
 

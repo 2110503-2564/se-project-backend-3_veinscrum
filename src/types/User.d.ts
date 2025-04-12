@@ -1,7 +1,7 @@
-import { Document, ObjectId } from "mongoose";
+import mongoose, { Document } from "mongoose";
 
 interface User extends Document {
-    id: ObjectId;
+    id: mongoose.Types.ObjectId;
     name: string;
     email: string;
     tel: string;

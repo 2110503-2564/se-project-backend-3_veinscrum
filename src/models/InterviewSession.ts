@@ -1,5 +1,5 @@
-import * as mongoose from "mongoose";
 import { InterviewSession } from "@/types/InterviewSession";
+import * as mongoose from "mongoose";
 
 const InterviewSessionSchema = new mongoose.Schema<InterviewSession>({
     company: {
