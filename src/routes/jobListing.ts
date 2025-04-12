@@ -1,3 +1,4 @@
+import { getInterviewSessionsByJobListing } from "@/controllers/interviewSessions";
 import {
     createJobListing,
     updateJobListing,
@@ -16,5 +17,9 @@ router
     .route("/:id")
     .put(protect, authorize("admin","company"), updateJobListing)
     .delete(protect, authorize("admin","company"), deleteJobListing);
+
+router
+    .route("/:id/sessions")
+    .get(protect, authorize("user","admin","company"), getInterviewSessionsByJobListing)
 
 export { router as jobListingsRouter };
