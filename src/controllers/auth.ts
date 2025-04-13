@@ -1,9 +1,9 @@
-import { NextFunction, Request, Response } from "express";
+import { UserModel } from "@/models/User";
 import { POSTUserLoginRequest } from "@/types/api/v1/auth/login/POST";
 import { POSTUserRegisterRequest } from "@/types/api/v1/auth/register/POST";
 import { RequestWithAuth } from "@/types/Request";
-import { UserModel } from "@/models/User";
 import { User } from "@/types/User";
+import { NextFunction, Request, Response } from "express";
 
 const sendTokenResponse = (user: User, statusCode: number, res: Response) => {
     const token = user.getSignedJwtToken();
@@ -71,7 +71,7 @@ export const login = async (
         if (!email || !password) {
             res.status(400).json({
                 success: false,
-                msg: "Please provide email and password",
+                message: "Please provide email and password",
             });
 
             return;
@@ -82,7 +82,7 @@ export const login = async (
         if (!user) {
             res.status(400).json({
                 success: false,
-                msg: "Invalid credentials",
+                message: "Invalid credentials",
             });
 
             return;
@@ -93,7 +93,7 @@ export const login = async (
         if (!isMatch) {
             res.status(401).json({
                 success: false,
-                msg: "Invalid credentials",
+                message: "Invalid credentials",
             });
 
             return;

@@ -1,9 +1,9 @@
-import * as mongoose from "mongoose";
 import * as bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import * as mongoose from "mongoose";
 
-import { SignOptions } from "jsonwebtoken";
 import { User } from "@/types/User";
+import { SignOptions } from "jsonwebtoken";
 
 const UserSchema = new mongoose.Schema<User>({
     name: {

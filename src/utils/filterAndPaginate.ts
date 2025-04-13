@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Query, Document } from "mongoose";
+import { Document, Query } from "mongoose";
 
 interface PaginationPage {
     page: number;

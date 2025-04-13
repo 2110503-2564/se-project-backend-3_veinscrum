@@ -1,8 +1,7 @@
-import * as express from "express";
-import { getMe, login, register, logout } from "@/controllers/auth";
-import { authorize, protect } from "@/middleware/auth";
 import { getInterviewSessionsByUser } from "@/controllers/interviewSessions";
 import { getUsers } from "@/controllers/users";
+import { authorize, protect } from "@/middleware/auth";
+import * as express from "express";
 
 const router = express.Router();
 

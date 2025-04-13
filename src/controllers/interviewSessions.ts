@@ -1,11 +1,11 @@
+import { CompanyModel } from "@/models/Company";
+import { InterviewSessionModel } from "@/models/InterviewSession";
 import { RequestWithAuth } from "@/types/Request";
 import { POSTRegisterInterviewSessionRequest } from "@/types/api/v1/sessions/POST";
 import { PUTUpdateInterviewSessionRequest } from "@/types/api/v1/sessions/PUT";
-import { NextFunction, Request, Response } from "express";
-import { CompanyModel } from "@/models/Company";
-import { InterviewSessionModel } from "@/models/InterviewSession";
 import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
 import { filterAndPaginate } from "@/utils/filterAndPaginate";
+import { NextFunction, Request, Response } from "express";
 
 // @desc    Get all interview sessions
 // @route   GET /api/v1/sessions
@@ -37,7 +37,7 @@ export const getInterviewSessions = async (
 
         if (!result) return;
 
-        const sessions = await result.query;
+        const sessions = await result.query.exec();
 
         res.status(200).json({
             success: true,
