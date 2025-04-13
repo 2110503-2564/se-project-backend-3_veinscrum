@@ -15,7 +15,7 @@ const JobListingSchema = new mongoose.Schema<JobListing>({
         required: [true, "Please add job title"],
     },
     description:{
-        type: mongoose.Schema.Types.Mixed,
+        type: String,
         required: [true, "Please add description"],
     },
     createdAt: {

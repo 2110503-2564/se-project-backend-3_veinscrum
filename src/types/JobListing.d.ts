@@ -4,6 +4,6 @@ interface JobListing extends Document {
     company: ObjectId;
     image:string;
     jobTitle: string;
-    description: JSON;
+    description: string;
     createdAt: Date;
 }
