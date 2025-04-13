@@ -6,7 +6,7 @@ interface User extends Document {
     email: string;
     tel: string;
     role: "user" | "admin" | "company";
-    company: ObjectId;
+    company: mongoose.Types.ObjectId;
     password: string;
     resetPasswordToken?: string;
     resetPasswordExpire?: Date;

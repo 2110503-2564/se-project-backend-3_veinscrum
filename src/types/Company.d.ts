@@ -6,5 +6,5 @@ interface Company extends Document {
     website: string;
     description: string;
     tel: string;
-    owner: ObjectId;
+    owner: mongoose.Types.ObjectId;
 }

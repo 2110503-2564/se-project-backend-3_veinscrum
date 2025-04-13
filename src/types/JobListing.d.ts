@@ -1,7 +1,7 @@
 import { Document } from "mongoose";
 
 interface JobListing extends Document {
-    company: ObjectId;
+    company: mongoose.Types.ObjectId;
     image:string;
     jobTitle: string;
     description: string;
