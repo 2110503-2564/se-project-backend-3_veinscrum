@@ -1,5 +1,6 @@
 import { CompanyModel } from "@/models/Company";
 import { InterviewSessionModel } from "@/models/InterviewSession";
+import { UserModel } from "@/models/User";
 import { RequestWithAuth } from "@/types/Request";
 import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
 import { filterAndPaginate } from "@/utils/filterAndPaginate";
@@ -82,6 +83,11 @@ export async function createCompany(
 ) {
     try {
         const company = await CompanyModel.create(req.body);
+        await UserModel.findByIdAndUpdate(req.body.owner,
+            {
+                company:company._id
+            });
+            
         res.status(201).json({ success: true, data: company });
     } catch (err) {
         next(err);
