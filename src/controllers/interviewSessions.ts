@@ -238,9 +238,7 @@ export const getInterviewSessionsByCompany = async (
             comparisonQuery.user = String(request.user.id);
         }
 
-        const baseQuery = InterviewSessionModel.find(comparisonQuery).populate(
-            request.user.role === "admin" ? "company user" : "company",
-        );
+        const baseQuery = InterviewSessionModel.find(comparisonQuery);
 
         const result = await filterAndPaginate({
             request,
