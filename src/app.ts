@@ -12,6 +12,7 @@ import { companiesRouter } from "@/routes/companies";
 import { interviewSessionsRouter } from "@/routes/interviewSessions";
 import { jobListingsRouter } from "@/routes/jobListings";
 import { usersRouter } from "@/routes/users";
+import { jobListingsRouter } from "./routes/jobListing";
 
 export const app = express();
 

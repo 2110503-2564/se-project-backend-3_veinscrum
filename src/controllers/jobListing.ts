@@ -5,6 +5,49 @@ import { filterAndPaginate } from "@/utils/filterAndPaginate";
 import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
 
+/// @desc     Get job listing by id
+/// @route    GET /api/v1/job-listings/:id
+/// @access   Public
+export const getJobListing = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const jobListing = await JobListingModel.findById(req.params.id);
+
+        if (!jobListing) {
+            res.status(400).json({
+                success: false,
+                message: "Job listing not found",
+            });
+
+            return;
+        }
+
+        res.status(200).json({ success: true, data: jobListing });
+    } catch (err) {
+        next(err);
+    }
+};
+
+/// @desc     Get all job listings
+/// @route    GET /api/v1/job-listings/
+/// @access   Private
+export const getJobListings = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const jobListings = await JobListingModel.find();
+
+        res.status(200).json({ success: true, data: jobListings });
+    } catch (err) {
+        next(err);
+    }
+};
+
 /// @desc     Get job listings by company
 /// @route    GET /api/v1/companies/:id/job-listings
 /// @access   Public
