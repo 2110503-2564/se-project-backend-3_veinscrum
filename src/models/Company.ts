@@ -30,8 +30,8 @@ const CompanySchema = new mongoose.Schema<Company>(
             type: String,
             required: [true, "Please add a phone number"],
             match: [
-                /^\d{3}-\d{3}-\d{4}$/,
-                "Please add a valid phone number in the format XXX-XXX-XXXX",
+                /^(\+?0?1\s?)?(\d{3}|\(\d{3}\))([\s-./]?)(\d{3})([\s-./]?)(\d{4})$/,
+                "Please add a valid phone number",
             ],
         },
         logo: {
