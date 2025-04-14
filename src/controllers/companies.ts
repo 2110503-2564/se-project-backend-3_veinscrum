@@ -1,10 +1,7 @@
 import { CompanyModel } from "@/models/Company";
 import { InterviewSessionModel } from "@/models/InterviewSession";
-<<<<<<< HEAD
 import { JobListingModel } from "@/models/JobListing";
 import { UserModel } from "@/models/User";
-=======
->>>>>>> 66f2603 (feat: add jobListing route)
 import { RequestWithAuth } from "@/types/Request";
 import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
 import { filterAndPaginate } from "@/utils/filterAndPaginate";
