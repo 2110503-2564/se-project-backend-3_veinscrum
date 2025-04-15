@@ -147,11 +147,27 @@ export async function deleteCompany(
             return;
         }
 
-        await InterviewSessionModel.deleteMany({ company: req.params.id });
-        await CompanyModel.deleteOne({ _id: req.params.id });
+        const jobListingIds = await JobListingModel.find({
+            company: company._id,
+        })
+            .select("_id")
+            .then((jobs) => jobs.map((job) => job._id));
 
-        res.status(200).json({ success: true, data: {} });
-    } catch (err) {
-        next(err);
+        if (jobListingIds.length > 0) {
+            await InterviewSessionModel.deleteMany({
+                jobListing: { $in: jobListingIds },
+            });
+        }
+
+        await JobListingModel.deleteMany({ company: company._id });
+        await CompanyModel.findByIdAndDelete(company._id);
+
+        res.status(200).json({
+            success: true,
+            message:
+                "Company and all associated job listings and interview sessions have been deleted",
+        });
+    } catch (error) {
+        next(error);
     }
 }
