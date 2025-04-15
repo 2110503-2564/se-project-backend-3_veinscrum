@@ -1,6 +1,6 @@
-import { Document } from "mongoose";
+import mongoose, { Document } from "mongoose";
 
-interface Company extends Document {
+interface Company extends Document<mongoose.Types.ObjectId> {
     name: string;
     address: string;
     website: string;
