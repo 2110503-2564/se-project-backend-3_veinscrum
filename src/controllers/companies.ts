@@ -1,5 +1,6 @@
 import { CompanyModel } from "@/models/Company";
 import { InterviewSessionModel } from "@/models/InterviewSession";
+import { JobListingModel } from "@/models/JobListing";
 import { UserModel } from "@/models/User";
 import { RequestWithAuth } from "@/types/Request";
 import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
@@ -59,7 +60,7 @@ export const getCompany = async (
         );
 
         if (!company) {
-            res.status(400).json({
+            res.status(404).json({
                 success: false,
                 message: "Company not found",
             });
@@ -83,11 +84,10 @@ export async function createCompany(
 ) {
     try {
         const company = await CompanyModel.create(req.body);
-        await UserModel.findByIdAndUpdate(req.body.owner,
-            {
-                company:company._id
-            });
-            
+        await UserModel.findByIdAndUpdate(req.body.owner, {
+            company: company._id,
+        });
+
         res.status(201).json({ success: true, data: company });
     } catch (err) {
         next(err);
@@ -113,7 +113,7 @@ export async function updateCompany(
         );
 
         if (!company) {
-            res.status(400).json({
+            res.status(404).json({
                 success: false,
                 message: "Company not found",
             });
@@ -139,7 +139,7 @@ export async function deleteCompany(
         const company = await CompanyModel.findById(req.params.id);
 
         if (!company) {
-            res.status(400).json({
+            res.status(404).json({
                 success: false,
                 message: "Company not found",
             });

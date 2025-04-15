@@ -1,9 +1,9 @@
-import { NextFunction, Request, Response } from "express";
+import { InterviewSessionModel } from "@/models/InterviewSession";
+import { JobListingModel } from "@/models/JobListing";
 import { RequestWithAuth } from "@/types/Request";
 import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
 import { filterAndPaginate } from "@/utils/filterAndPaginate";
-import { InterviewSessionModel } from "@/models/InterviewSession";
-import { JobListingModel } from "@/models/JobListing";
+import { NextFunction, Request, Response } from "express";
 
 /// @desc     Get job listing by id
 /// @route    GET /api/v1/job-listings/:id
@@ -17,7 +17,7 @@ export const getJobListing = async (
         const jobListing = await JobListingModel.findById(req.params.id);
 
         if (!jobListing) {
-            res.status(400).json({
+            res.status(404).json({
                 success: false,
                 message: "Job listing not found",
             });
@@ -58,7 +58,7 @@ export const getJobListingByCompany = async (
 ) => {
     try {
         const request = req as RequestWithAuth;
-        
+
         const comparisonQuery = buildComparisonQuery(request.query);
 
         const baseQuery = JobListingModel.find(comparisonQuery);
@@ -120,7 +120,7 @@ export async function updateJobListing(
         );
 
         if (!jobListing) {
-            res.status(400).json({
+            res.status(404).json({
                 success: false,
                 message: "Job listing not found",
             });
@@ -146,7 +146,7 @@ export async function deleteJobListing(
         const jobListing = await JobListingModel.findById(req.params.id);
 
         if (!jobListing) {
-            res.status(400).json({
+            res.status(404).json({
                 success: false,
                 message: "Job listing not found",
             });
@@ -162,3 +162,4 @@ export async function deleteJobListing(
         next(err);
     }
 }
+
