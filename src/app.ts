@@ -1,6 +1,5 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import dotenv from "dotenv";
 import express from "express";
 import mongoSanitize from "express-mongo-sanitize";
 import { xss } from "express-xss-sanitizer";
@@ -13,8 +12,6 @@ import { companiesRouter } from "@/routes/companies";
 import { interviewSessionsRouter } from "@/routes/interviewSessions";
 import { jobListingsRouter } from "@/routes/jobListings";
 import { usersRouter } from "@/routes/users";
-
-dotenv.config();
 
 export const app = express();
 
