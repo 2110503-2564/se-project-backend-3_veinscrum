@@ -222,46 +222,6 @@ export const deleteInterviewSession = async (
     }
 };
 
-
-// Unuseable now. Remove?
-export const getInterviewSessionsByCompany = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-): Promise<void> => {
-    try {
-        const request = req as RequestWithAuth;
-
-        const comparisonQuery = buildComparisonQuery(request.query);
-
-        if (request.user.role !== "admin") {
-            comparisonQuery.user = String(request.user.id);
-        }
-
-        const baseQuery = InterviewSessionModel.find(comparisonQuery);
-
-        const result = await filterAndPaginate({
-            request,
-            response: res,
-            baseQuery,
-            total: await InterviewSessionModel.countDocuments(comparisonQuery),
-        });
-
-        if (!result) return;
-
-        const sessions = await result.query;
-
-        res.status(200).json({
-            success: true,
-            count: sessions.length,
-            pagination: result.pagination,
-            data: sessions,
-        });
-    } catch (err) {
-        next(err);
-    }
-};
-
 export const getInterviewSessionsByUser = async (
     req: Request,
     res: Response,
@@ -296,7 +256,6 @@ export const getInterviewSessionsByUser = async (
         next(error); // Pass the error to the next middleware
     }
 };
-
 
 /// @desc     Get interview session by job listing
 /// @route    GET /api/v1/job-listings/:id/sessions
