@@ -22,7 +22,7 @@ export const protect = async (
     if (!token) {
         res.status(401).json({
             success: false,
-            message: "Not authorize to access this route",
+            error: "Not authorize to access this route",
         });
 
         return;
@@ -39,7 +39,7 @@ export const protect = async (
         if (!user) {
             res.status(401).json({
                 success: false,
-                message: "User not found",
+                error: "User not found",
             });
 
             return;
@@ -54,7 +54,7 @@ export const protect = async (
         console.error(err.stack);
         res.status(401).json({
             success: false,
-            message: "Not authorize to access this route",
+            error: "Not authorize to access this route",
         });
 
         return;
@@ -70,7 +70,7 @@ export const authorize = (...roles: string[]) => {
         if (!user) {
             res.status(401).json({
                 success: false,
-                message: "Not authorize to access this route",
+                error: "Not authorize to access this route",
             });
 
             return;
@@ -79,7 +79,7 @@ export const authorize = (...roles: string[]) => {
         if (!roles.includes(user.role)) {
             res.status(403).json({
                 success: false,
-                message: `User role '${user.role}' is not authorized to access this route`,
+                error: `User role '${user.role}' is not authorized to access this route`,
             });
             return;
         }

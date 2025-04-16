@@ -19,7 +19,7 @@ export const getJobListing = async (
         if (!jobListing) {
             res.status(404).json({
                 success: false,
-                message: "Job listing not found",
+                error: "Job listing not found",
             });
 
             return;
@@ -122,7 +122,7 @@ export async function updateJobListing(
         if (!jobListing) {
             res.status(404).json({
                 success: false,
-                message: "Job listing not found",
+                error: "Job listing not found",
             });
 
             return;
@@ -148,7 +148,7 @@ export async function deleteJobListing(
         if (!jobListing) {
             res.status(404).json({
                 success: false,
-                message: "Job listing not found",
+                error: "Job listing not found",
             });
 
             return;

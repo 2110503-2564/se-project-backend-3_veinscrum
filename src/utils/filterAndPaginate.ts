@@ -68,7 +68,7 @@ function validatePaginationParams(
     if (limit == -1 && page != 1) {
         res.status(400).json({
             success: false,
-            message:
+            error:
                 "For a complete list load, the page must always be set to 1.",
         });
         return { page: null, limit: null };
@@ -77,7 +77,7 @@ function validatePaginationParams(
     if (isNaN(page) || page <= 0) {
         res.status(400).json({
             success: false,
-            message: "Invalid page number",
+            error: "Invalid page number",
         });
         return { page: null, limit: null };
     }
@@ -85,7 +85,7 @@ function validatePaginationParams(
     if (isNaN(limit) || limit < -1 || limit == 0) {
         res.status(400).json({
             success: false,
-            message: "Invalid limit number",
+            error: "Invalid limit number",
         });
         return { page: null, limit: null };
     }

@@ -71,7 +71,7 @@ export const login = async (
         if (!email || !password) {
             res.status(400).json({
                 success: false,
-                message: "Please provide email and password",
+                error: "Please provide email and password",
             });
 
             return;
@@ -82,7 +82,7 @@ export const login = async (
         if (!user) {
             res.status(400).json({
                 success: false,
-                message: "Invalid credentials",
+                error: "Invalid credentials",
             });
 
             return;
@@ -93,7 +93,7 @@ export const login = async (
         if (!isMatch) {
             res.status(401).json({
                 success: false,
-                message: "Invalid credentials",
+                error: "Invalid credentials",
             });
 
             return;

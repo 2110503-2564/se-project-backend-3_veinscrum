@@ -11,26 +11,26 @@ export const errorHandler = (
     console.error(err);
 
     let statusCode = res.statusCode !== 200 ? res.statusCode : 500;
-    let message: string;
+    let error: string;
 
     if (err instanceof MongoServerError) {
         statusCode = 400;
         if ((err as MongoServerError).code === 11000) {
-            message = `Duplicate field value entered: ${Object.keys((err as MongoServerError).keyValue).join(", ")}`;
+            error = `Duplicate field value entered: ${Object.keys((err as MongoServerError).keyValue).join(", ")}`;
         } else {
-            message = `MongoDB Error: ${(err as MongoServerError).message}`;
+            error = `MongoDB Error: ${(err as MongoServerError).message}`;
         }
     } else if (err instanceof MongooseError) {
         statusCode = 400;
-        message = `Mongoose Error: ${(err as MongooseError).message}`;
+        error = `Mongoose Error: ${(err as MongooseError).message}`;
     } else if (err instanceof Error) {
-        message = (err as Error).message;
+        error = (err as Error).message;
     } else {
-        message = "Server Error";
+        error = "Server Error";
     }
 
     res.status(statusCode).json({
         success: false,
-        message,
+        message: error,
     });
 };

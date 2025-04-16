@@ -62,7 +62,7 @@ export const getCompany = async (
         if (!company) {
             res.status(404).json({
                 success: false,
-                message: "Company not found",
+                error: "Company not found",
             });
 
             return;
@@ -115,7 +115,7 @@ export async function updateCompany(
         if (!company) {
             res.status(404).json({
                 success: false,
-                message: "Company not found",
+                error: "Company not found",
             });
 
             return;
@@ -141,7 +141,7 @@ export async function deleteCompany(
         if (!company) {
             res.status(404).json({
                 success: false,
-                message: "Company not found",
+                error: "Company not found",
             });
 
             return;
@@ -164,7 +164,7 @@ export async function deleteCompany(
 
         res.status(200).json({
             success: true,
-            message:
+            error:
                 "Company and all associated job listings and interview sessions have been deleted",
         });
     } catch (error) {

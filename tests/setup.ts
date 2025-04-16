@@ -1,5 +1,5 @@
-import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
+import * as mongoose from "mongoose";
 
 // Environment variables for testing
 process.env.JWT_SECRET = "test-jwt-secret";
@@ -13,47 +13,38 @@ declare global {
     var mongoUri: string;
 }
 
+// export async function clearTestDatabase() {
+//     await CompanyModel.deleteMany({});
+//     await UserModel.deleteMany({});
+//     await InterviewSessionModel.deleteMany({});
+//     await JobListingModel.deleteMany({});
+// }
+
 // Start MongoDB Memory Server
-async function setupTestDatabase() {
-    // Close any existing connection first
-    if (mongoose.connection.readyState !== 0) {
+beforeAll(async () => {
+    if (mongoose.connection?.readyState !== 0) {
         await mongoose.disconnect();
     }
 
     const mongoServer = await MongoMemoryServer.create();
     const mongoUri = mongoServer.getUri();
-    
-    // Set the connection string for tests
+
     process.env.MONGO_URI = mongoUri;
-    
-    // Store for later access
+
     global.mongoServer = mongoServer;
     global.mongoUri = mongoUri;
 
-    // Connect to the in-memory database
     await mongoose.connect(mongoUri);
-    console.log('Connected to the in-memory database');
-}
-
-// Setup database for all tests
-setupTestDatabase().catch(error => {
-    console.error("Error setting up test database:", error);
-    process.exit(1);
+    console.log("Connected to the in-memory database");
 });
 
-// Clean up when tests complete or are interrupted
-process.on('SIGTERM', async () => {
-    console.log('Cleaning up test environment...');
-    if (mongoose.connection.readyState !== 0) {
+// Cleanup after all tests
+afterAll(async () => {
+    if (mongoose.connection?.readyState !== 0) {
         await mongoose.disconnect();
     }
     if (global.mongoServer) {
         await global.mongoServer.stop();
     }
-});
-
-// Prevent unhandled promise rejections from failing silently
-process.on('unhandledRejection', (error) => {
-    console.error('Unhandled Promise Rejection:', error);
-    process.exit(1);
+    console.log("Disconnected and stopped MongoDB memory server");
 });

@@ -69,7 +69,7 @@ export const getInterviewSession = async (
         if (!interviewSession) {
             res.status(404).json({
                 success: false,
-                message: `No interview session found with id ${req.params.id}`,
+                error: `No interview session found with id ${req.params.id}`,
             });
             return;
         }
@@ -99,7 +99,7 @@ export const createInterviewSession = async (
         if (!companies) {
             res.status(404).json({
                 success: false,
-                message: `No company found with id ${request.body.company}`,
+                error: `No company found with id ${request.body.company}`,
             });
 
             return;
@@ -115,7 +115,7 @@ export const createInterviewSession = async (
         if (existingSessions.length >= 3 && request.user.role !== "admin") {
             res.status(400).json({
                 success: false,
-                message: `User with ID ${request.user.id} has reached the maximum number of interview sessions`,
+                error: `User with ID ${request.user.id} has reached the maximum number of interview sessions`,
             });
 
             return;
@@ -130,7 +130,7 @@ export const createInterviewSession = async (
         ) {
             res.status(400).json({
                 success: false,
-                message: `Interview sessions can only be scheduled from May 10th to May 13th, 2022`,
+                error: `Interview sessions can only be scheduled from May 10th to May 13th, 2022`,
             });
             return;
         }
@@ -162,7 +162,7 @@ export const updateInterviewSession = async (
         if (!session) {
             res.status(404).json({
                 success: false,
-                message: "Session not found",
+                error: "Session not found",
             });
             return;
         }
@@ -171,7 +171,7 @@ export const updateInterviewSession = async (
             request.user?.role !== "admin" &&
             session.user.toString() !== String(request.user?.id)
         ) {
-            res.status(403).json({ success: false, message: "Not authorized" });
+            res.status(403).json({ success: false, error: "Not authorized" });
             return;
         }
 
@@ -202,7 +202,7 @@ export const deleteInterviewSession = async (
         if (!session) {
             res.status(404).json({
                 success: false,
-                message: "Session not found",
+                error: "Session not found",
             });
             return;
         }
@@ -211,7 +211,7 @@ export const deleteInterviewSession = async (
             request.user?.role !== "admin" &&
             session.user.toString() !== String(request.user?.id)
         ) {
-            res.status(403).json({ success: false, message: "Not authorized" });
+            res.status(403).json({ success: false, error: "Not authorized" });
         }
 
         await InterviewSessionModel.deleteOne({ _id: request.params.id });
@@ -283,7 +283,7 @@ export const getInterviewSessionsByUser = async (
         if (!interviewSession) {
             res.status(404).json({
                 success: false,
-                message: `No interview session found with user-id ${req.params.id}`,
+                error: `No interview session found with user-id ${req.params.id}`,
             });
             return;
         }
