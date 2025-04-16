@@ -5,11 +5,11 @@ services:
         command:
             - "--providers.docker=true"
             - "--providers.docker.exposedbydefault=false"
-            - "--entrypoints.web.address=:80"
+            - "--entrypoints.web.address=:8090"
             - "--api.insecure=false"
             - "--log.level=DEBUG"
         ports:
-            - "80:80"
+            - "8090:8090"
         volumes:
             - "/var/run/docker.sock:/var/run/docker.sock:ro"
         restart: unless-stopped
@@ -48,7 +48,9 @@ services:
             - "traefik.enable=true"
             - "traefik.http.routers.dozzle.rule=Host(`${LOGS_DOMAIN}`)"
             - "traefik.http.routers.dozzle.entrypoints=web"
-            - "traefik.http.services.dozzle.loadbalancer.server.port=8080"
+            - "traefik.http.services.dozzle.loadbalancer.server.port=8090"
+        ports:
+            - "8081:8090"
 
 networks:
     default:
