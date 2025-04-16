@@ -1,0 +1,32 @@
+services:
+    api:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: veinscrum-be
+        restart: unless-stopped
+        env_file:
+            - .env
+        ports:
+            - "${PORT}:${PORT}"
+        environment:
+            - PORT=${PORT}
+            - NODE_ENV=${NODE_ENV}
+            - MONGO_URI=${MONGO_URI}
+            - JWT_SECRET=${JWT_SECRET}
+            - JWT_EXPIRE=${JWT_EXPIRE}
+            - JWT_COOKIE_EXPIRE=${JWT_COOKIE_EXPIRE}
+            - CORS_ORIGIN=${CORS_ORIGIN}
+
+    dozzle:
+        image: amir20/dozzle:latest
+        container_name: veinscrum-logs
+        restart: always
+        volumes:
+            - "/var/run/docker.sock:/var/run/docker.sock"
+        ports:
+            - "8081:8080"
+
+networks:
+    default:
+        driver: bridge
