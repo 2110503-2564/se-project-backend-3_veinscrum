@@ -51,7 +51,7 @@ export const getJobListings = async (
 /// @desc     Get job listings by company
 /// @route    GET /api/v1/companies/:id/job-listings
 /// @access   Public
-export const getJobListingByCompany = async (
+export const getJobListingsByCompany = async (
     req: Request,
     res: Response,
     next: NextFunction,
