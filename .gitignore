@@ -35,8 +35,13 @@ bower_components
 Thumbs.db
 
 # Ignore built ts files
+<<<<<<< HEAD
 dist/
 **/tsconfig.tsbuildinfo
+=======
+# dist/**/*
+dist/tsconfig.tsbuildinfo
+>>>>>>> 6e1131b (fix: add tsconfig.tsbuildinfo to .gitignore)
 
 # ignore yarn.lock
 yarn.lock
