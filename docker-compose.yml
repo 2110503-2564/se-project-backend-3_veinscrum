@@ -1,0 +1,55 @@
+services:
+    traefik:
+        image: traefik:latest
+        container_name: traefik
+        command:
+            - "--providers.docker=true"
+            - "--providers.docker.exposedbydefault=false"
+            - "--entrypoints.web.address=:80"
+            - "--api.insecure=false"
+            - "--log.level=DEBUG"
+        ports:
+            - "80:80"
+        volumes:
+            - "/var/run/docker.sock:/var/run/docker.sock:ro"
+        restart: unless-stopped
+
+    api:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: veinscrum-be
+        restart: unless-stopped
+        env_file:
+            - .env
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.api.rule=Host(`${API_DOMAIN}`)"
+            - "traefik.http.routers.api.entrypoints=web"
+            - "traefik.http.services.api.loadbalancer.server.port=${PORT}"
+        ports:
+            - "${PORT}:${PORT}"
+        environment:
+            - PORT=${PORT}
+            - NODE_ENV=${NODE_ENV}
+            - MONGO_URI=${MONGO_URI}
+            - JWT_SECRET=${JWT_SECRET}
+            - JWT_EXPIRE=${JWT_EXPIRE}
+            - JWT_COOKIE_EXPIRE=${JWT_COOKIE_EXPIRE}
+            - CORS_ORIGIN=${CORS_ORIGIN}
+
+    dozzle:
+        image: amir20/dozzle:latest
+        container_name: veinscrum-logs
+        restart: always
+        volumes:
+            - "/var/run/docker.sock:/var/run/docker.sock"
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.dozzle.rule=Host(`${LOGS_DOMAIN}`)"
+            - "traefik.http.routers.dozzle.entrypoints=web"
+            - "traefik.http.services.dozzle.loadbalancer.server.port=8080"
+
+networks:
+    default:
+        driver: bridge
