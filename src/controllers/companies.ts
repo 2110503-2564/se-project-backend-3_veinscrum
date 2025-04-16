@@ -21,7 +21,7 @@ export const getCompanies = async (
         const comparisonQuery = buildComparisonQuery(request.query);
 
         const baseQuery =
-            CompanyModel.find(comparisonQuery).populate("jobListing");
+            CompanyModel.find(comparisonQuery).populate("jobListings");
         const total = await CompanyModel.countDocuments();
 
         const result = await filterAndPaginate({
@@ -56,7 +56,7 @@ export const getCompany = async (
 ) => {
     try {
         const company = await CompanyModel.findById(req.params.id).populate(
-            "jobListing",
+            "jobListings",
         );
 
         if (!company) {
@@ -164,8 +164,7 @@ export async function deleteCompany(
 
         res.status(200).json({
             success: true,
-            error:
-                "Company and all associated job listings and interview sessions have been deleted",
+            error: "Company and all associated job listings and interview sessions have been deleted",
         });
     } catch (error) {
         next(error);

@@ -48,7 +48,7 @@ const CompanySchema = new mongoose.Schema<Company>(
     },
 );
 
-CompanySchema.virtual("jobListing", {
+CompanySchema.virtual("jobListings", {
     ref: "JobListing",
     localField: "_id",
     foreignField: "company",
