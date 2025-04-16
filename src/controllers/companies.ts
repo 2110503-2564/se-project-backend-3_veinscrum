@@ -164,7 +164,7 @@ export async function deleteCompany(
 
         res.status(200).json({
             success: true,
-            error: "Company and all associated job listings and interview sessions have been deleted",
+            data: {},
         });
     } catch (error) {
         next(error);
