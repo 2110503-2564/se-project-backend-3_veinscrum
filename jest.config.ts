@@ -94,6 +94,7 @@ const config: Config = {
 
     // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
     moduleNameMapper: {
+        "^tests/(.*)$": "<rootDir>/tests/$1",
         "^@/(.*)$": "<rootDir>/src/$1",
     },
 
@@ -139,10 +140,10 @@ const config: Config = {
     // runner: "jest-runner",
 
     // The paths to modules that run some code to configure or set up the testing environment before each test
-    setupFiles: ["<rootDir>/tests/setup.ts"],
+    // setupFiles: ["<rootDir>/tests/setup.ts"],
 
     // A list of paths to modules that run some code to configure or set up the testing framework before each test
-    // setupFilesAfterEnv: [],
+    setupFilesAfterEnv: ["<rootDir>/tests/setup.ts"],
 
     // The number of seconds after which a test is considered as slow and reported as such in the results.
     // slowTestThreshold: 5,

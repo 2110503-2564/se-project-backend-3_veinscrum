@@ -1,6 +1,6 @@
 import { Company } from "@/types/Company";
 import * as mongoose from "mongoose";
-import "./InterviewSession";
+import "./JobListing";
 
 const CompanySchema = new mongoose.Schema<Company>(
     {
@@ -30,9 +30,16 @@ const CompanySchema = new mongoose.Schema<Company>(
             type: String,
             required: [true, "Please add a phone number"],
             match: [
-                /^\d{3}-\d{3}-\d{4}$/,
-                "Please add a valid phone number in the format XXX-XXX-XXXX",
+                /^(\+?0?1\s?)?(\d{3}|\(\d{3}\))([\s-./]?)(\d{3})([\s-./]?)(\d{4})$/,
+                "Please add a valid phone number",
             ],
+        },
+        logo: {
+            type: String,
+        },
+        owner: {
+            type: mongoose.Schema.Types.ObjectId,
+            required: [true, "Please add company owner"],
         },
     },
     {
@@ -41,8 +48,8 @@ const CompanySchema = new mongoose.Schema<Company>(
     },
 );
 
-CompanySchema.virtual("sessions", {
-    ref: "InterviewSession",
+CompanySchema.virtual("jobListings", {
+    ref: "JobListing",
     localField: "_id",
     foreignField: "company",
     justOne: false,

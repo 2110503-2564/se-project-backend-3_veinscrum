@@ -1,5 +1,7 @@
 import { CompanyModel } from "@/models/Company";
 import { InterviewSessionModel } from "@/models/InterviewSession";
+import { JobListingModel } from "@/models/JobListing";
+import { UserModel } from "@/models/User";
 import { RequestWithAuth } from "@/types/Request";
 import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
 import { filterAndPaginate } from "@/utils/filterAndPaginate";
@@ -19,7 +21,7 @@ export const getCompanies = async (
         const comparisonQuery = buildComparisonQuery(request.query);
 
         const baseQuery =
-            CompanyModel.find(comparisonQuery).populate("sessions");
+            CompanyModel.find(comparisonQuery).populate("jobListings");
         const total = await CompanyModel.countDocuments();
 
         const result = await filterAndPaginate({
@@ -54,13 +56,13 @@ export const getCompany = async (
 ) => {
     try {
         const company = await CompanyModel.findById(req.params.id).populate(
-            "sessions",
+            "jobListings",
         );
 
         if (!company) {
-            res.status(400).json({
+            res.status(404).json({
                 success: false,
-                message: "Company not found",
+                error: "Company not found",
             });
 
             return;
@@ -82,6 +84,10 @@ export async function createCompany(
 ) {
     try {
         const company = await CompanyModel.create(req.body);
+        await UserModel.findByIdAndUpdate(req.body.owner, {
+            company: company._id,
+        });
+
         res.status(201).json({ success: true, data: company });
     } catch (err) {
         next(err);
@@ -107,9 +113,9 @@ export async function updateCompany(
         );
 
         if (!company) {
-            res.status(400).json({
+            res.status(404).json({
                 success: false,
-                message: "Company not found",
+                error: "Company not found",
             });
 
             return;
@@ -133,19 +139,34 @@ export async function deleteCompany(
         const company = await CompanyModel.findById(req.params.id);
 
         if (!company) {
-            res.status(400).json({
+            res.status(404).json({
                 success: false,
-                message: "Company not found",
+                error: "Company not found",
             });
 
             return;
         }
 
-        await InterviewSessionModel.deleteMany({ company: req.params.id });
-        await CompanyModel.deleteOne({ _id: req.params.id });
+        const jobListingIds = await JobListingModel.find({
+            company: company._id,
+        })
+            .select("_id")
+            .then((jobs) => jobs.map((job) => job._id));
 
-        res.status(200).json({ success: true, data: {} });
-    } catch (err) {
-        next(err);
+        if (jobListingIds.length > 0) {
+            await InterviewSessionModel.deleteMany({
+                jobListing: { $in: jobListingIds },
+            });
+        }
+
+        await JobListingModel.deleteMany({ company: company._id });
+        await CompanyModel.findByIdAndDelete(company._id);
+
+        res.status(200).json({
+            success: true,
+            data: {},
+        });
+    } catch (error) {
+        next(error);
     }
 }

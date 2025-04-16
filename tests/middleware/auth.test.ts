@@ -90,7 +90,7 @@ describe("Auth Middleware", () => {
             expect(res.json).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: false,
-                    message: expect.stringContaining("not found"),
+                    error: expect.stringContaining("not found"),
                 }),
             );
             expect(next).not.toHaveBeenCalled();
@@ -139,7 +139,7 @@ describe("Auth Middleware", () => {
             expect(res.json).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: false,
-                    message: expect.stringContaining("not authorized"),
+                    error: expect.stringContaining("not authorized"),
                 }),
             );
         });

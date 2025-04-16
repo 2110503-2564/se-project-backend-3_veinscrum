@@ -1,7 +1,6 @@
 import { app } from "@/app";
 import { UserModel } from "@/models/User";
 import jwt from "jsonwebtoken";
-import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
 import request from "supertest";
 
@@ -15,25 +14,11 @@ jest.mock("jsonwebtoken", () => ({
     },
 }));
 
-let mongoServer: MongoMemoryServer;
-
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const mongoUri = mongoServer.getUri();
-    await mongoose.disconnect();
-    await mongoose.connect(mongoUri);
-});
-
-afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
+beforeEach(async () => {
+    jest.clearAllMocks();
 });
 
 describe("Auth Routes", () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     describe("POST /api/v1/auth/register", () => {
         it("should register a new user and return token", async () => {
             const userData = {
@@ -71,7 +56,7 @@ describe("Auth Routes", () => {
             };
 
             const error = new mongoose.Error.ValidationError();
-            error.errors.email = { message: "Email already exists" } as any;
+            error.errors.email = { error: "Email already exists" } as any;
 
             (UserModel.create as jest.Mock).mockRejectedValue(error);
 

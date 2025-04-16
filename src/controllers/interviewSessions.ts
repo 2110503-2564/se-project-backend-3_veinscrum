@@ -69,7 +69,7 @@ export const getInterviewSession = async (
         if (!interviewSession) {
             res.status(404).json({
                 success: false,
-                message: `No interview session found with id ${req.params.id}`,
+                error: `No interview session found with id ${req.params.id}`,
             });
             return;
         }
@@ -99,7 +99,7 @@ export const createInterviewSession = async (
         if (!companies) {
             res.status(404).json({
                 success: false,
-                message: `No company found with id ${request.body.company}`,
+                error: `No company found with id ${request.body.company}`,
             });
 
             return;
@@ -115,7 +115,7 @@ export const createInterviewSession = async (
         if (existingSessions.length >= 3 && request.user.role !== "admin") {
             res.status(400).json({
                 success: false,
-                message: `User with ID ${request.user.id} has reached the maximum number of interview sessions`,
+                error: `User with ID ${request.user.id} has reached the maximum number of interview sessions`,
             });
 
             return;
@@ -130,7 +130,7 @@ export const createInterviewSession = async (
         ) {
             res.status(400).json({
                 success: false,
-                message: `Interview sessions can only be scheduled from May 10th to May 13th, 2022`,
+                error: `Interview sessions can only be scheduled from May 10th to May 13th, 2022`,
             });
             return;
         }
@@ -162,7 +162,7 @@ export const updateInterviewSession = async (
         if (!session) {
             res.status(404).json({
                 success: false,
-                message: "Session not found",
+                error: "Session not found",
             });
             return;
         }
@@ -171,7 +171,7 @@ export const updateInterviewSession = async (
             request.user?.role !== "admin" &&
             session.user.toString() !== String(request.user?.id)
         ) {
-            res.status(403).json({ success: false, message: "Not authorized" });
+            res.status(403).json({ success: false, error: "Not authorized" });
             return;
         }
 
@@ -202,7 +202,7 @@ export const deleteInterviewSession = async (
         if (!session) {
             res.status(404).json({
                 success: false,
-                message: "Session not found",
+                error: "Session not found",
             });
             return;
         }
@@ -211,52 +211,12 @@ export const deleteInterviewSession = async (
             request.user?.role !== "admin" &&
             session.user.toString() !== String(request.user?.id)
         ) {
-            res.status(403).json({ success: false, message: "Not authorized" });
+            res.status(403).json({ success: false, error: "Not authorized" });
         }
 
         await InterviewSessionModel.deleteOne({ _id: request.params.id });
 
         res.status(200).json({ success: true, data: {} });
-    } catch (err) {
-        next(err);
-    }
-};
-
-export const getInterviewSessionsByCompany = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-): Promise<void> => {
-    try {
-        const request = req as RequestWithAuth;
-
-        const comparisonQuery = buildComparisonQuery(request.query);
-
-        if (request.user.role !== "admin") {
-            comparisonQuery.user = String(request.user.id);
-        }
-
-        const baseQuery = InterviewSessionModel.find(comparisonQuery).populate(
-            request.user.role === "admin" ? "company user" : "company",
-        );
-
-        const result = await filterAndPaginate({
-            request,
-            response: res,
-            baseQuery,
-            total: await InterviewSessionModel.countDocuments(comparisonQuery),
-        });
-
-        if (!result) return;
-
-        const sessions = await result.query;
-
-        res.status(200).json({
-            success: true,
-            count: sessions.length,
-            pagination: result.pagination,
-            data: sessions,
-        });
     } catch (err) {
         next(err);
     }
@@ -283,7 +243,7 @@ export const getInterviewSessionsByUser = async (
         if (!interviewSession) {
             res.status(404).json({
                 success: false,
-                message: `No interview session found with user-id ${req.params.id}`,
+                error: `No interview session found with user-id ${req.params.id}`,
             });
             return;
         }
@@ -294,5 +254,48 @@ export const getInterviewSessionsByUser = async (
         });
     } catch (error) {
         next(error); // Pass the error to the next middleware
+    }
+};
+
+/// @desc     Get interview session by job listing
+/// @route    GET /api/v1/job-listings/:id/sessions
+/// @access   Protect
+export const getInterviewSessionsByJobListing = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        const request = req as RequestWithAuth;
+
+        const comparisonQuery = buildComparisonQuery(request.query);
+
+        comparisonQuery.jobListing = String(request.params.id);
+
+        if (request.user.role !== "admin") {
+            comparisonQuery.user = String(request.user.id);
+        }
+
+        const baseQuery = InterviewSessionModel.find(comparisonQuery);
+
+        const result = await filterAndPaginate({
+            request,
+            response: res,
+            baseQuery,
+            total: await InterviewSessionModel.countDocuments(comparisonQuery),
+        });
+
+        if (!result) return;
+
+        const sessions = await result.query;
+
+        res.status(200).json({
+            success: true,
+            count: sessions.length,
+            pagination: result.pagination,
+            data: sessions,
+        });
+    } catch (err) {
+        next(err);
     }
 };

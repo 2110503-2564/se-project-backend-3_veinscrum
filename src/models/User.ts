@@ -29,8 +29,12 @@ const UserSchema = new mongoose.Schema<User>({
     role: {
         type: String,
         required: [true, "Please add a role"],
-        enum: ["user", "admin"],
+        enum: ["user", "admin", "company"],
         default: "user",
+    },
+    company:{
+        type:mongoose.Schema.Types.ObjectId,
+        default: null,
     },
     password: {
         type: String,

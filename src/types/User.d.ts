@@ -1,11 +1,12 @@
 import mongoose, { Document } from "mongoose";
 
-interface User extends Document {
+interface User extends Document<mongoose.Types.ObjectId> {
     id: mongoose.Types.ObjectId;
     name: string;
     email: string;
     tel: string;
-    role: "user" | "admin";
+    role: "user" | "admin" | "company";
+    company: mongoose.Types.ObjectId;
     password: string;
     resetPasswordToken?: string;
     resetPasswordExpire?: Date;
