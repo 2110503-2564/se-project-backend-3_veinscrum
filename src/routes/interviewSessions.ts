@@ -65,6 +65,16 @@ export { router as interviewSessionsRouter };
 
 /**
 * @swagger
+* components:
+*   securitySchemes:
+*     bearerAuth: # arbitrary name for the security scheme
+*       type: http
+*       scheme: bearer
+*       bearerFormat: JWT # optional, arbitrary value for documentation purposes
+*/
+
+/**
+* @swagger
 * tags:
 *   name: Interview Sessions
 *   description: The session managing API
@@ -117,6 +127,8 @@ export { router as interviewSessionsRouter };
 *   post:
 *     summary: Create a new session
 *     tags: [Interview Sessions]
+*     security:
+*       - bearerAuth: []
 *     requestBody:
 *       required: true
 *       content:
@@ -140,6 +152,8 @@ export { router as interviewSessionsRouter };
 *   put:
 *     summary: Update the session by the id
 *     tags: [Interview Sessions]
+*     security:
+*       - bearerAuth: []
 *     parameters:
 *       - in: path
 *         name: id
@@ -172,6 +186,8 @@ export { router as interviewSessionsRouter };
 *   delete:
 *     summary: Remove the session by id
 *     tags: [Interview Sessions]
+*     security:
+*       - bearerAuth: []
 *     parameters:
 *       - in: path
 *         name: id
