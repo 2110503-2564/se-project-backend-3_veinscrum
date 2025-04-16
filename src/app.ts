@@ -10,7 +10,7 @@ import { errorHandler } from "@/middleware/errorHandler";
 import { authRouter } from "@/routes/auth";
 import { companiesRouter } from "@/routes/companies";
 import { interviewSessionsRouter } from "@/routes/interviewSessions";
-import { jobListingsRouter } from "@/routes/jobListing";
+import { jobListingsRouter } from "@/routes/jobListings";
 import { usersRouter } from "@/routes/users";
 
 export const app = express();
