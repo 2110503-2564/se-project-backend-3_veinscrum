@@ -72,13 +72,13 @@ export const getJobListingByCompany = async (
 
         if (!result) return;
 
-        const sessions = await result.query;
+        const interviewSessions = await result.query;
 
         res.status(200).json({
             success: true,
-            count: sessions.length,
+            count: interviewSessions.length,
             pagination: result.pagination,
-            data: sessions,
+            data: interviewSessions,
         });
     } catch (err) {
         next(err);
@@ -162,4 +162,3 @@ export async function deleteJobListing(
         next(err);
     }
 }
-
