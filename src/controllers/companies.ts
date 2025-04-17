@@ -2,6 +2,7 @@ import { CompanyModel } from "@/models/Company";
 import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
 import { UserModel } from "@/models/User";
+import { POSTCompanyRequest } from "@/types/api/v1/companies/POST";
 import { RequestWithAuth } from "@/types/Request";
 import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
 import { filterAndPaginate } from "@/utils/filterAndPaginate";
@@ -83,8 +84,16 @@ export async function createCompany(
     next: NextFunction,
 ) {
     try {
-        const company = await CompanyModel.create(req.body);
-        await UserModel.findByIdAndUpdate(req.body.owner, {
+        const request = req as POSTCompanyRequest;
+        const { id } = request.user;
+
+        const requestBodyWithCompany = {
+            ...request.body,
+            owner: id,
+        };
+
+        const company = await CompanyModel.create(requestBodyWithCompany);
+        await UserModel.findByIdAndUpdate(id, {
             company: company._id,
         });
 
