@@ -159,11 +159,12 @@ export async function deleteCompany(
             });
         }
 
-        await JobListingModel.deleteMany({ company: company._id });
-        await CompanyModel.findByIdAndDelete(company._id);
-        await UserModel.findByIdAndUpdate({ company: company._id }, {
+        await JobListingModel.deleteMany({ company:company._id });        
+        await UserModel.findByIdAndUpdate(company._id, {
             company: null,
         });
+        await CompanyModel.findByIdAndDelete(company._id);
+
 
         res.status(200).json({
             success: true,
