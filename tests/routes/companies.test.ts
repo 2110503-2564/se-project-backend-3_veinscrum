@@ -1,4 +1,3 @@
-import { app } from "@/app";
 import { CompanyModel } from "@/models/Company";
 import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
@@ -140,7 +139,6 @@ describe("Companies Routes", () => {
                 website: "https://newtechco.com",
                 description: "Cutting-edge technology solutions",
                 tel: "+1 (555) 333-2222",
-                owner: owner._id,
             };
 
             const response = await request(app)
@@ -209,6 +207,9 @@ describe("Companies Routes", () => {
                 role: "company",
             });
 
+            // Mock JWT verification to return the owner's ID
+            (jwt.verify as jest.Mock).mockReturnValue({ id: owner._id });
+
             // Create a company to update
             const company = await CompanyModel.create({
                 name: "Company to Update",
@@ -216,16 +217,12 @@ describe("Companies Routes", () => {
                 website: "https://oldcompany.com",
                 description: "Old company description",
                 tel: "+1 (555) 888-9999",
-                owner: owner._id,
             });
 
             // Update owner with company reference
             await UserModel.findByIdAndUpdate(owner._id, {
                 company: company._id,
             });
-
-            // Mock JWT verification to return the owner's ID
-            (jwt.verify as jest.Mock).mockReturnValue({ id: owner._id });
 
             const updateData = {
                 name: "Updated Company Name",

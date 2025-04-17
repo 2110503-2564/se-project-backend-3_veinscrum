@@ -13,50 +13,53 @@ import { interviewSessionsRouter } from "@/routes/interviewSessions";
 import { jobListingsRouter } from "@/routes/jobListings";
 import { usersRouter } from "@/routes/users";
 
-import swaggerUI from "swagger-ui-express";
 import swaggerJSDoc from "swagger-jsdoc";
+import swaggerUI from "swagger-ui-express";
 
-export const app = express();
-
-const swaggerOptions={
-    swaggerDefinition:{
-        openapi: '3.0.0',
-        info: {
-            title: 'Library API',
-            version: '1.0.0',
-            description: 'A simple Job Fair API'
+export function initializeApp() {
+    const app = express();
+    const swaggerOptions = {
+        swaggerDefinition: {
+            openapi: "3.0.0",
+            info: {
+                title: "Library API",
+                version: "1.0.0",
+                description: "A simple Job Fair API",
+            },
+            servers: [
+                {
+                    url: "http://localhost:5050/api/v1",
+                },
+            ],
         },
-        servers:[
-            {
-                url:'http://localhost:5050/api/v1'
-            }
-        ],
-    },
-    apis:['**/routes/*.ts'],
-};
-const swaggerDocs=swaggerJSDoc(swaggerOptions);
-app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocs));
+        apis: ["**/routes/*.ts"],
+    };
+    const swaggerDocs = swaggerJSDoc(swaggerOptions);
+    app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocs));
 
-// Middleware
-app.use(express.json());
-app.use(cookieParser());
-app.use(mongoSanitize());
-app.use(helmet());
-app.use(xss());
-app.use(hpp());
-app.use(
-    cors({
-        origin: process.env.CORS_ORIGIN,
-        credentials: true,
-    }),
-);
+    // Middleware
+    app.use(express.json());
+    app.use(cookieParser());
+    app.use(mongoSanitize());
+    app.use(helmet());
+    app.use(xss());
+    app.use(hpp());
+    app.use(
+        cors({
+            origin: process.env.CORS_ORIGIN,
+            credentials: true,
+        }),
+    );
 
-// Routes
-app.use("/api/v1/auth", authRouter);
-app.use("/api/v1/companies", companiesRouter);
-app.use("/api/v1/sessions", interviewSessionsRouter);
-app.use("/api/v1/users", usersRouter);
-app.use("/api/v1/job-listings", jobListingsRouter);
+    // Routes
+    app.use("/api/v1/auth", authRouter);
+    app.use("/api/v1/companies", companiesRouter);
+    app.use("/api/v1/sessions", interviewSessionsRouter);
+    app.use("/api/v1/users", usersRouter);
+    app.use("/api/v1/job-listings", jobListingsRouter);
 
-// Global error handler
-app.use(errorHandler);
+    // Global error handler
+    app.use(errorHandler);
+
+    return app;
+}

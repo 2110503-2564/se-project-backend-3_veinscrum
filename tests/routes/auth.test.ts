@@ -1,4 +1,3 @@
-import { app } from "@/app";
 import { UserModel } from "@/models/User";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
