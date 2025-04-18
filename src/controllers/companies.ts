@@ -119,7 +119,7 @@ export async function updateCompany(
 ) {
     try {
         const request = req as RequestWithAuth;
-        const { id: userId, role } = request.user;
+        const { id: userId, role: userRole } = request.user;
 
         const company = await CompanyModel.findById(request.params.id);
 
@@ -132,7 +132,7 @@ export async function updateCompany(
             return;
         }
 
-        if (role !== "admin" && company.owner !== userId) {
+        if (userRole !== "admin" && !company.owner.equals(userId)) {
             res.status(403).json({
                 success: false,
                 error: "You do not have permission to update this company",
@@ -153,7 +153,7 @@ export async function updateCompany(
         if (!updatedCompany) {
             res.status(404).json({
                 success: false,
-                error: "Target company not found",
+                error: "Company not found",
             });
 
             return;
@@ -175,7 +175,7 @@ export async function deleteCompany(
 ) {
     try {
         const request = req as RequestWithAuth;
-        const { id: userId, role } = request.user;
+        const { id: userId, role: userRole } = request.user;
 
         const company = await CompanyModel.findById(request.params.id);
 
@@ -188,7 +188,7 @@ export async function deleteCompany(
             return;
         }
 
-        if (role !== "admin" && company.owner !== userId) {
+        if (userRole !== "admin" && !company.owner.equals(userId)) {
             res.status(403).json({
                 success: false,
                 error: "You do not have permission to delete this company",
