@@ -112,25 +112,50 @@ export async function updateCompany(
     next: NextFunction,
 ) {
     try {
-        const company = await CompanyModel.findByIdAndUpdate(
-            req.params.id,
-            req.body,
+        const request = req as RequestWithAuth;
+        const { id: UserId, role } = request.user;
+
+        const company = await CompanyModel.findOne({
+            owner: UserId,
+        });
+
+        if (!company) {
+            res.status(404).json({
+                success: false,
+                error: "Company associated with this user was not found",
+            });
+
+            return;
+        }
+
+        if (role !== "admin" && company.id !== request.params.id) {
+            res.status(403).json({
+                success: false,
+                error: "You do not have permission to update this company",
+            });
+
+            return;
+        }
+
+        const updatedCompany = await CompanyModel.findByIdAndUpdate(
+            request.params.id,
+            request.body,
             {
                 new: true,
                 runValidators: true,
             },
         );
 
-        if (!company) {
+        if (!updatedCompany) {
             res.status(404).json({
                 success: false,
-                error: "Company not found",
+                error: "Target company not found",
             });
 
             return;
         }
 
-        res.status(200).json({ success: true, data: company });
+        res.status(200).json({ success: true, data: updatedCompany });
     } catch (err) {
         next(err);
     }
@@ -168,12 +193,11 @@ export async function deleteCompany(
             });
         }
 
-        await JobListingModel.deleteMany({ company:company._id });        
+        await JobListingModel.deleteMany({ company: company._id });
         await UserModel.findByIdAndUpdate(company._id, {
             company: null,
         });
         await CompanyModel.findByIdAndDelete(company._id);
-
 
         res.status(200).json({
             success: true,
