@@ -110,14 +110,13 @@ export async function updateJobListing(
     next: NextFunction,
 ) {
     try {
-        const jobListing = await JobListingModel.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            {
-                new: true,
-                runValidators: true,
-            },
-        );
+        const request = req as RequestWithAuth;
+        const { id: userId, role: userRole } = request.user;
+
+        const jobListing = await JobListingModel.findById(req.params.id).populate({
+            path: "company",
+            select: "owner",
+        });
 
         if (!jobListing) {
             res.status(404).json({
@@ -128,7 +127,25 @@ export async function updateJobListing(
             return;
         }
 
-        res.status(200).json({ success: true, data: jobListing });
+        if (userRole !== "admin" && !userId.equals(jobListing.company.owner)) {
+            res.status(403).json({
+                success: false,
+                error: "You do not have permission to update this job listing",
+            });
+
+            return;
+        }
+
+        const updatedJobListing = await JobListingModel.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            {
+                new: true,
+                runValidators: true,
+            },
+        );
+
+        res.status(200).json({ success: true, data: updatedJobListing });
     } catch (err) {
         next(err);
     }
@@ -143,12 +160,27 @@ export async function deleteJobListing(
     next: NextFunction,
 ) {
     try {
-        const jobListing = await JobListingModel.findById(req.params.id);
+        const request = req as RequestWithAuth;
+        const { id: userId, role: userRole } = request.user;
+
+        const jobListing = await JobListingModel.findById(req.params.id).populate({
+            path: "company",
+            select: "owner",
+        });
 
         if (!jobListing) {
             res.status(404).json({
                 success: false,
                 error: "Job listing not found",
+            });
+
+            return;
+        }
+
+        if (userRole !== "admin" && !userId.equals(jobListing.company.owner)) {
+            res.status(403).json({
+                success: false,
+                error: "You do not have permission to delete this job listing",
             });
 
             return;
