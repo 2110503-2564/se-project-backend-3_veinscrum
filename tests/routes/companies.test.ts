@@ -1,9 +1,10 @@
-import { app } from "@/app";
+import { initializeApp } from "@/app";
 import { CompanyModel } from "@/models/Company";
 import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
 import { UserModel } from "@/models/User";
 import { Company } from "@/types/Company";
+import { Express } from "express";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import request from "supertest";
@@ -17,6 +18,12 @@ jest.mock("jsonwebtoken", () => ({
         JsonWebTokenError: class JsonWebTokenError extends Error {},
     },
 }));
+
+let app: Express;
+
+beforeAll(() => {
+    app = initializeApp();
+});
 
 describe("Companies Routes", () => {
     beforeAll(async () => {

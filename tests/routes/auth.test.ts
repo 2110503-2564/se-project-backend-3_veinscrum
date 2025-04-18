@@ -1,5 +1,6 @@
-import { app } from "@/app";
+import { initializeApp } from "@/app";
 import { UserModel } from "@/models/User";
+import { Express } from "express";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import request from "supertest";
@@ -13,6 +14,12 @@ jest.mock("jsonwebtoken", () => ({
         JsonWebTokenError: class JsonWebTokenError extends Error {},
     },
 }));
+
+let app: Express;
+
+beforeAll(() => {
+    app = initializeApp();
+});
 
 beforeEach(async () => {
     jest.clearAllMocks();
