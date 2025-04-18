@@ -36,7 +36,7 @@ beforeAll(async () => {
 
     await mongoose.connect(mongoUri);
     console.log("Connected to the in-memory database");
-});
+}, 999999); // wait for MongoDB to downloaded
 
 // Cleanup after all tests
 afterAll(async () => {
