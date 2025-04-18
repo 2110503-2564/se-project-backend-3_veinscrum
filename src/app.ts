@@ -38,7 +38,7 @@ export function initializeApp() {
     app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocs));
 
     // Middleware
-    app.use(express.json());
+    app.use(express.json({ limit: "10mb" }));
     app.use(cookieParser());
     app.use(mongoSanitize());
     app.use(helmet());
