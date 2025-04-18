@@ -20,7 +20,6 @@ export const getCompanies = async (
         const request = req as RequestWithAuth;
 
         const comparisonQuery = buildComparisonQuery(request.query);
-
         const baseQuery =
             CompanyModel.find(comparisonQuery).populate("jobListings");
         const total = await CompanyModel.countDocuments();
@@ -32,7 +31,14 @@ export const getCompanies = async (
             total,
         });
 
-        if (!result) return;
+        if (!result) {
+            res.status(400).json({
+                success: false,
+                error: "Invalid pagination parameters: 'page' and 'limit' must be positive integers.",
+            });
+
+            return;
+        }
 
         const companies = await result.query.exec();
 
@@ -85,15 +91,15 @@ export async function createCompany(
 ) {
     try {
         const request = req as POSTCompanyRequest;
-        const { id } = request.user;
+        const { id: userId } = request.user;
 
         const requestBodyWithCompany = {
             ...request.body,
-            owner: id,
+            owner: userId,
         };
 
         const company = await CompanyModel.create(requestBodyWithCompany);
-        await UserModel.findByIdAndUpdate(id, {
+        await UserModel.findByIdAndUpdate(userId, {
             company: company._id,
         });
 
@@ -113,22 +119,20 @@ export async function updateCompany(
 ) {
     try {
         const request = req as RequestWithAuth;
-        const { id: UserId, role } = request.user;
+        const { id: userId, role } = request.user;
 
-        const company = await CompanyModel.findOne({
-            owner: UserId,
-        });
+        const company = await CompanyModel.findById(request.params.id);
 
         if (!company) {
             res.status(404).json({
                 success: false,
-                error: "Company associated with this user was not found",
+                error: "Company not found",
             });
 
             return;
         }
 
-        if (role !== "admin" && company.id !== request.params.id) {
+        if (role !== "admin" && company.owner !== userId) {
             res.status(403).json({
                 success: false,
                 error: "You do not have permission to update this company",
@@ -170,12 +174,24 @@ export async function deleteCompany(
     next: NextFunction,
 ) {
     try {
-        const company = await CompanyModel.findById(req.params.id);
+        const request = req as RequestWithAuth;
+        const { id: userId, role } = request.user;
+
+        const company = await CompanyModel.findById(request.params.id);
 
         if (!company) {
             res.status(404).json({
                 success: false,
                 error: "Company not found",
+            });
+
+            return;
+        }
+
+        if (role !== "admin" && company.owner !== userId) {
+            res.status(403).json({
+                success: false,
+                error: "You do not have permission to delete this company",
             });
 
             return;
@@ -194,7 +210,7 @@ export async function deleteCompany(
         }
 
         await JobListingModel.deleteMany({ company: company._id });
-        await UserModel.findByIdAndUpdate(company._id, {
+        await UserModel.findByIdAndUpdate(company.owner, {
             company: null,
         });
         await CompanyModel.findByIdAndDelete(company._id);
