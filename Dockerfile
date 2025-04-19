@@ -43,4 +43,4 @@ COPY .env.example .env
 EXPOSE 5050
 
 # Start the application
-CMD ["node", "dist/server.js"] 
+CMD ["node", "dist/src/server.js"] 

@@ -17,6 +17,7 @@ services:
             - JWT_EXPIRE=${JWT_EXPIRE}
             - JWT_COOKIE_EXPIRE=${JWT_COOKIE_EXPIRE}
             - CORS_ORIGIN=${CORS_ORIGIN}
+            - SERVER_URL=${SERVER_URL}
 
     dozzle:
         image: amir20/dozzle:latest
