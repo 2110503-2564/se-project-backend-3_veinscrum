@@ -1,12 +1,13 @@
 import { authorize, protect } from "@/middleware/auth";
 import { UserModel } from "@/models/User";
-import { RequestWithAuth } from "@/types/Request";
-import { User } from "@/types/User";
-import { Request, Response } from "express";
+import type { RequestWithAuth } from "@/types/Request";
+import type { User } from "@/types/User";
+import type { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 
 jest.mock("@/models/User");
+
 jest.mock("jsonwebtoken", () => ({
     __esModule: true,
     default: {
@@ -55,7 +56,6 @@ describe("Auth Middleware", () => {
 
         it("should return 401 if token is invalid", async () => {
             req.headers = { authorization: "Bearer invalid-token" };
-
             (jwt.verify as jest.Mock).mockImplementation(() => {
                 throw new jwt.JsonWebTokenError("Invalid token");
             });
@@ -68,7 +68,6 @@ describe("Auth Middleware", () => {
 
         it("should pass if valid token is provided", async () => {
             req.headers = { authorization: "Bearer valid-token" };
-
             (jwt.verify as jest.Mock).mockReturnValue({ id: mockUser.id });
             (UserModel.findById as jest.Mock).mockResolvedValue(mockUser);
 
@@ -80,7 +79,6 @@ describe("Auth Middleware", () => {
 
         it("should return 401 if user not found", async () => {
             req.headers = { authorization: "Bearer valid-token" };
-
             (jwt.verify as jest.Mock).mockReturnValue({ id: "nonexistent-id" });
             (UserModel.findById as jest.Mock).mockResolvedValue(null);
 

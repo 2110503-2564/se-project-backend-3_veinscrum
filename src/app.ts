@@ -13,28 +13,56 @@ import { interviewSessionsRouter } from "@/routes/interviewSessions";
 import { jobListingsRouter } from "@/routes/jobListings";
 import { usersRouter } from "@/routes/users";
 
-export const app = express();
+import swaggerJSDoc from "swagger-jsdoc";
+import swaggerUI from "swagger-ui-express";
 
-// Middleware
-app.use(express.json());
-app.use(cookieParser());
-app.use(mongoSanitize());
-app.use(helmet());
-app.use(xss());
-app.use(hpp());
-app.use(
-    cors({
-        origin: process.env.CORS_ORIGIN,
-        credentials: true,
-    }),
-);
+export function initializeApp() {
+    const swaggerOptions = {
+        swaggerDefinition: {
+            openapi: "3.0.0",
+            info: {
+                title: "Library API",
+                version: "1.0.0",
+                description: "A simple Job Fair API",
+            },
+            servers: [
+                {
+                    url: process.env.SERVER_URL,
+                },
+            ],
+        },
+        apis: ["**/routes/*.ts"],
+    };
 
-// Routes
-app.use("/api/v1/auth", authRouter);
-app.use("/api/v1/companies", companiesRouter);
-app.use("/api/v1/sessions", interviewSessionsRouter);
-app.use("/api/v1/users", usersRouter);
-app.use("/api/v1/job-listings", jobListingsRouter);
+    const app = express();
+    const swaggerDocs = swaggerJSDoc(swaggerOptions);
 
-// Global error handler
-app.use(errorHandler);
+    // API docs
+    app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocs));
+
+    // Middleware
+    app.use(express.json({ limit: "10mb" }));
+    app.use(cookieParser());
+    app.use(mongoSanitize());
+    app.use(helmet());
+    app.use(xss());
+    app.use(hpp());
+    app.use(
+        cors({
+            origin: process.env.CORS_ORIGIN,
+            credentials: true,
+        }),
+    );
+
+    // Routes
+    app.use("/api/v1/auth", authRouter);
+    app.use("/api/v1/companies", companiesRouter);
+    app.use("/api/v1/sessions", interviewSessionsRouter);
+    app.use("/api/v1/users", usersRouter);
+    app.use("/api/v1/job-listings", jobListingsRouter);
+
+    // Global error handler
+    app.use(errorHandler);
+
+    return app;
+}

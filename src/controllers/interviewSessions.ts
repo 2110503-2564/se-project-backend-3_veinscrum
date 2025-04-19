@@ -1,20 +1,26 @@
-import { CompanyModel } from "@/models/Company";
 import { InterviewSessionModel } from "@/models/InterviewSession";
-import { RequestWithAuth } from "@/types/Request";
-import { POSTRegisterInterviewSessionRequest } from "@/types/api/v1/sessions/POST";
-import { PUTUpdateInterviewSessionRequest } from "@/types/api/v1/sessions/PUT";
+import { JobListingModel } from "@/models/JobListing";
+import { UserModel } from "@/models/User";
+import type { Company } from "@/types/Company";
+import type { InterviewSession } from "@/types/InterviewSession";
+import type { JobListing } from "@/types/JobListing";
+import type { RequestWithAuth } from "@/types/Request";
+import type { POSTRegisterInterviewSessionRequest } from "@/types/api/v1/sessions/POST";
+import type { PUTUpdateInterviewSessionRequest } from "@/types/api/v1/sessions/PUT";
 import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
 import { filterAndPaginate } from "@/utils/filterAndPaginate";
-import { NextFunction, Request, Response } from "express";
+import { isWithinAllowedDateRange } from "@/utils/isWithinAllowedDateRange";
+import type { NextFunction, Request, Response } from "express";
+import type mongoose from "mongoose";
 
 // @desc    Get all interview sessions
 // @route   GET /api/v1/sessions
 // @access  Registered users can view their own sessions, admins can view all
-export const getInterviewSessions = async (
+export async function getInterviewSessions(
     req: Request,
     res: Response,
     next: NextFunction,
-): Promise<void> => {
+) {
     try {
         const request = req as RequestWithAuth;
 
@@ -25,7 +31,27 @@ export const getInterviewSessions = async (
         }
 
         const baseQuery = InterviewSessionModel.find(comparisonQuery).populate(
-            request.user.role === "admin" ? "company user" : "company",
+            request.user.role === "admin"
+                ? [
+                      {
+                          path: "user",
+                          select: "name email",
+                      },
+                      {
+                          path: "jobListing",
+                          populate: {
+                              path: "company",
+                              model: "Company",
+                          },
+                      },
+                  ]
+                : {
+                      path: "jobListing",
+                      populate: {
+                          path: "company",
+                          model: "Company",
+                      },
+                  },
         );
 
         const result = await filterAndPaginate({
@@ -35,7 +61,14 @@ export const getInterviewSessions = async (
             total: await InterviewSessionModel.countDocuments(comparisonQuery),
         });
 
-        if (!result) return;
+        if (!result) {
+            res.status(400).json({
+                success: false,
+                error: "Invalid pagination parameters: 'page' and 'limit' must be positive integers.",
+            });
+
+            return;
+        }
 
         const sessions = await result.query.exec();
 
@@ -48,28 +81,65 @@ export const getInterviewSessions = async (
     } catch (err) {
         next(err);
     }
-};
+}
 
 // @desc    Get single interview session
 // @route   GET /api/v1/sessions/:id
-// @access  Public
-export const getInterviewSession = async (
+// @access  Private - Only accessible by the user who created it, the company owner, or an admin
+export async function getInterviewSession(
     req: Request,
     res: Response,
     next: NextFunction,
-): Promise<void> => {
+) {
     try {
-        const interviewSession = await InterviewSessionModel.findById(
-            req.params.id,
-        ).populate({
-            path: "user",
-            select: "name email",
-        });
+        const request = req as RequestWithAuth;
+        const { id: userId, role: userRole } = request.user;
 
-        if (!interviewSession) {
+        const rawInterviewSession = await InterviewSessionModel.findById(
+            req.params.id,
+        ).populate([
+            {
+                path: "user",
+                select: "name email role",
+            },
+            {
+                path: "jobListing",
+                populate: {
+                    path: "company",
+                    model: "Company",
+                },
+            },
+        ]);
+
+        if (!rawInterviewSession) {
             res.status(404).json({
                 success: false,
                 error: `No interview session found with id ${req.params.id}`,
+            });
+            return;
+        }
+
+        const interviewSession =
+            rawInterviewSession as unknown as InterviewSession & {
+                jobListing: JobListing & { company: Company };
+            } & Required<{ _id: mongoose.Types.ObjectId }>;
+
+        if (!interviewSession.jobListing) {
+            res.status(404).json({
+                success: false,
+                error: "Job listing associated with this interview session no longer exists",
+            });
+            return;
+        }
+
+        if (
+            userRole !== "admin" &&
+            String(userId) !== String(interviewSession.user._id) &&
+            String(userId) !== String(interviewSession.jobListing.company.owner)
+        ) {
+            res.status(403).json({
+                success: false,
+                error: "You do not have permission to view this interview session",
             });
             return;
         }
@@ -79,59 +149,57 @@ export const getInterviewSession = async (
             data: interviewSession,
         });
     } catch (error) {
-        next(error); // Pass the error to the next middleware
+        next(error);
     }
-};
+}
 
 // @desc    Create interview session
 // @route   POST /api/v1/sessions
 // @access  Private
-export const createInterviewSession = async (
+export async function createInterviewSession(
     req: Request,
     res: Response,
     next: NextFunction,
-): Promise<void> => {
+) {
     try {
         const request = req as POSTRegisterInterviewSessionRequest;
+        const { id: userId, role: userRole } = request.user;
 
-        const companies = await CompanyModel.findById(request.body.company);
+        const jobListing = await JobListingModel.findById(
+            request.body.jobListing,
+        );
 
-        if (!companies) {
+        if (!jobListing) {
             res.status(404).json({
                 success: false,
-                error: `No company found with id ${request.body.company}`,
+                error: "Job listing not found",
             });
 
             return;
         }
 
-        request.body.user = request.user.id;
+        request.body.user = userId;
 
         const existingSessions = await InterviewSessionModel.find({
-            user: request.user.id,
+            user: userId,
         });
 
         // If user is not an admin, they can only create up to 3 interview sessions
-        if (existingSessions.length >= 3 && request.user.role !== "admin") {
+        if (existingSessions.length >= 3 && userRole !== "admin") {
             res.status(400).json({
                 success: false,
-                error: `User with ID ${request.user.id} has reached the maximum number of interview sessions`,
+                error: "You have reached the maximum number of interview sessions",
             });
 
             return;
         }
 
-        const startDate = new Date("2022-05-10T00:00:00Z");
-        const endDate = new Date("2022-05-13T23:59:59Z");
-
-        if (
-            new Date(request.body.date) < startDate ||
-            new Date(request.body.date) > endDate
-        ) {
+        if (!isWithinAllowedDateRange(new Date(request.body.date))) {
             res.status(400).json({
                 success: false,
-                error: `Interview sessions can only be scheduled from May 10th to May 13th, 2022`,
+                error: "Interview sessions can only be scheduled from May 10th to May 13th, 2022",
             });
+
             return;
         }
 
@@ -145,7 +213,7 @@ export const createInterviewSession = async (
     } catch (error) {
         next(error);
     }
-};
+}
 
 // @desc    Update interview session
 // @route   PUT /api/v1/sessions/:id
@@ -157,31 +225,69 @@ export const updateInterviewSession = async (
 ): Promise<void> => {
     try {
         const request = req as PUTUpdateInterviewSessionRequest;
-        let session = await InterviewSessionModel.findById(request.params.id);
+        const { id: userId, role: userRole } = request.user;
 
-        if (!session) {
+        const rawInterviewSession = await InterviewSessionModel.findById(
+            request.params.id,
+        ).populate({
+            path: "jobListing",
+            populate: {
+                path: "company",
+                model: "Company",
+            },
+        });
+
+        if (!rawInterviewSession) {
             res.status(404).json({
                 success: false,
-                error: "Session not found",
+                error: "Interview session not found",
+            });
+
+            return;
+        }
+
+        const interviewSession =
+            rawInterviewSession as unknown as InterviewSession & {
+                jobListing: JobListing & { company: Company };
+            } & Required<{ _id: mongoose.Types.ObjectId }>;
+
+        if (!interviewSession.jobListing) {
+            res.status(404).json({
+                success: false,
+                error: "Job listing associated with this interview session no longer exists",
             });
             return;
         }
 
         if (
-            request.user?.role !== "admin" &&
-            session.user.toString() !== String(request.user?.id)
+            userRole !== "admin" &&
+            String(userId) !== String(interviewSession.user) &&
+            String(userId) !== String(interviewSession.jobListing.company.owner)
         ) {
-            res.status(403).json({ success: false, error: "Not authorized" });
+            res.status(403).json({
+                success: false,
+                error: "You do not have permission to update this interview session",
+            });
+
             return;
         }
 
-        session = await InterviewSessionModel.findByIdAndUpdate(
-            request.params.id,
-            request.body,
-            { new: true, runValidators: true },
-        );
+        if (!isWithinAllowedDateRange(new Date(request.body.date))) {
+            res.status(400).json({
+                success: false,
+                error: "Interview sessions can only be scheduled from May 10th to May 13th, 2022",
+            });
+            return;
+        }
 
-        res.status(200).json({ success: true, data: session });
+        const updatedInterviewSession =
+            await InterviewSessionModel.findByIdAndUpdate(
+                request.params.id,
+                request.body,
+                { new: true, runValidators: true },
+            );
+
+        res.status(200).json({ success: true, data: updatedInterviewSession });
     } catch (err) {
         next(err);
     }
@@ -190,28 +296,50 @@ export const updateInterviewSession = async (
 // @desc    Delete interview session
 // @route   DELETE /api/v1/sessions/:id
 // @access  Users can delete their own sessions, admins can delete any
-export const deleteInterviewSession = async (
+export async function deleteInterviewSession(
     req: Request,
     res: Response,
     next: NextFunction,
-): Promise<void> => {
+) {
     try {
         const request = req as RequestWithAuth;
-        const session = await InterviewSessionModel.findById(request.params.id);
+        const { id: userId, role: userRole } = request.user;
 
-        if (!session) {
+        const rawInterviewSession = await InterviewSessionModel.findById(
+            request.params.id,
+        ).populate({
+            path: "jobListing",
+            populate: {
+                path: "company",
+                model: "Company",
+            },
+        });
+
+        if (!rawInterviewSession) {
             res.status(404).json({
                 success: false,
-                error: "Session not found",
+                error: "Interview session not found",
             });
+
             return;
         }
 
+        const interviewSession =
+            rawInterviewSession as unknown as InterviewSession & {
+                jobListing: JobListing & { company: Company };
+            } & Required<{ _id: mongoose.Types.ObjectId }>;
+
         if (
-            request.user?.role !== "admin" &&
-            session.user.toString() !== String(request.user?.id)
+            userRole !== "admin" &&
+            String(userId) !== String(interviewSession.user) &&
+            String(userId) !== String(interviewSession.jobListing.company.owner)
         ) {
-            res.status(403).json({ success: false, error: "Not authorized" });
+            res.status(403).json({
+                success: false,
+                error: "You do not have permission to delete this interview session",
+            });
+
+            return;
         }
 
         await InterviewSessionModel.deleteOne({ _id: request.params.id });
@@ -220,14 +348,38 @@ export const deleteInterviewSession = async (
     } catch (err) {
         next(err);
     }
-};
+}
 
-export const getInterviewSessionsByUser = async (
+export async function getInterviewSessionsByUser(
     req: Request,
     res: Response,
     next: NextFunction,
-): Promise<void> => {
+) {
     try {
+        const request = req as RequestWithAuth;
+        const { id: requestUserId, role: requestUserRole } = request.user;
+
+        const requestedUser = await UserModel.findById(req.params.id);
+
+        if (!requestedUser) {
+            res.status(404).json({
+                success: false,
+                error: "User not found",
+            });
+
+            return;
+        }
+
+        if (
+            requestUserRole !== "admin" &&
+            String(requestUserId) !== String(requestedUser._id)
+        ) {
+            res.status(403).json({
+                success: false,
+                error: "You do not have permission to view this user interview sessions",
+            });
+        }
+
         const interviewSession = await InterviewSessionModel.find({
             user: req.params.id,
         }).populate([
@@ -236,14 +388,18 @@ export const getInterviewSessionsByUser = async (
                 select: "name email",
             },
             {
-                path: "company",
+                path: "jobListing",
+                populate: {
+                    path: "company",
+                    model: "Company",
+                },
             },
         ]);
 
         if (!interviewSession) {
             res.status(404).json({
                 success: false,
-                error: `No interview session found with user-id ${req.params.id}`,
+                error: "No interview sessions found for this user",
             });
             return;
         }
@@ -253,18 +409,18 @@ export const getInterviewSessionsByUser = async (
             data: interviewSession,
         });
     } catch (error) {
-        next(error); // Pass the error to the next middleware
+        next(error);
     }
-};
+}
 
 /// @desc     Get interview session by job listing
 /// @route    GET /api/v1/job-listings/:id/sessions
 /// @access   Protect
-export const getInterviewSessionsByJobListing = async (
+export async function getInterviewSessionsByJobListing(
     req: Request,
     res: Response,
     next: NextFunction,
-): Promise<void> => {
+) {
     try {
         const request = req as RequestWithAuth;
 
@@ -298,4 +454,4 @@ export const getInterviewSessionsByJobListing = async (
     } catch (err) {
         next(err);
     }
-};
+}

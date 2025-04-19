@@ -1,13 +1,8 @@
-import { NextFunction, Request, Response } from "express";
+import type { Request, Response } from "express";
 import { MongoServerError } from "mongodb"; // Import MongoDB error class
 import { MongooseError } from "mongoose";
 
-export const errorHandler = (
-    err: unknown,
-    req: Request,
-    res: Response,
-    next: NextFunction,
-) => {
+export const errorHandler = (err: unknown, req: Request, res: Response) => {
     console.error(err);
 
     let statusCode = res.statusCode !== 200 ? res.statusCode : 500;

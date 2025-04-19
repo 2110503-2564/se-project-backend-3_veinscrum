@@ -1,9 +1,10 @@
-import { app } from "@/app";
+import { initializeApp } from "@/app";
 import { CompanyModel } from "@/models/Company";
 import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
 import { UserModel } from "@/models/User";
-import { Company } from "@/types/Company";
+import type { Company } from "@/types/Company";
+import type { Express } from "express";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import request from "supertest";
@@ -17,6 +18,12 @@ jest.mock("jsonwebtoken", () => ({
         JsonWebTokenError: class JsonWebTokenError extends Error {},
     },
 }));
+
+let app: Express;
+
+beforeAll(() => {
+    app = initializeApp();
+});
 
 describe("Companies Routes", () => {
     beforeAll(async () => {
@@ -71,7 +78,7 @@ describe("Companies Routes", () => {
             expect(response.body).toHaveProperty("success", true);
             expect(response.body).toHaveProperty("data");
             expect(response.body.count).toBe(2);
-            expect(response.body.data.length).toBe(2);
+            expect(response.body.data).toHaveLength(2);
 
             // Check for company names in the response, order might vary
             const companyNames = response.body.data.map((c: Company) => c.name);
@@ -185,7 +192,6 @@ describe("Companies Routes", () => {
             const invalidCompanyData = {
                 name: "Incomplete Company",
                 // Missing required fields
-                owner: owner._id,
             };
 
             const response = await request(app)
@@ -373,7 +379,7 @@ describe("Companies Routes", () => {
             const remainingJobListings = await JobListingModel.find({
                 company: company._id,
             });
-            expect(remainingJobListings.length).toBe(0);
+            expect(remainingJobListings).toHaveLength(0);
 
             // Verify associated interview sessions were deleted
             const remainingSessionsForJobListing1 =
@@ -384,8 +390,8 @@ describe("Companies Routes", () => {
                 await InterviewSessionModel.find({
                     jobListing: jobListings[1]._id,
                 });
-            expect(remainingSessionsForJobListing1.length).toBe(0);
-            expect(remainingSessionsForJobListing2.length).toBe(0);
+            expect(remainingSessionsForJobListing1).toHaveLength(0);
+            expect(remainingSessionsForJobListing2).toHaveLength(0);
         });
 
         it("should return 404 if company to delete is not found", async () => {
@@ -434,7 +440,6 @@ describe("Companies Routes", () => {
                 website: "https://lifecycletest.com",
                 description: "Testing company lifecycle",
                 tel: "+1 (555) 123-4567",
-                owner: owner._id,
             };
 
             // Create the company

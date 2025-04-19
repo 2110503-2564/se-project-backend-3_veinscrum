@@ -104,8 +104,9 @@
         "skipLibCheck": true /* Skip type checking all .d.ts files. */,
         "plugins": [
             // Transform paths in output .js files
-            { "transform": "typescript-transform-paths" },
-
+            {
+                "transform": "typescript-transform-paths"
+            },
             // Transform paths in output .d.ts files (Include this line if you output declarations files)
             {
                 "transform": "typescript-transform-paths",

@@ -1,9 +1,8 @@
+import { CompanyModel } from "@/models/Company";
 import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
-import { RequestWithAuth } from "@/types/Request";
-import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
-import { filterAndPaginate } from "@/utils/filterAndPaginate";
-import { NextFunction, Request, Response } from "express";
+import type { RequestWithAuth } from "@/types/Request";
+import type { NextFunction, Request, Response } from "express";
 
 /// @desc     Get job listing by id
 /// @route    GET /api/v1/job-listings/:id
@@ -14,7 +13,11 @@ export const getJobListing = async (
     next: NextFunction,
 ) => {
     try {
-        const jobListing = await JobListingModel.findById(req.params.id);
+        const jobListing = await JobListingModel.findById(
+            req.params.id,
+        ).populate({
+            path: "company",
+        });
 
         if (!jobListing) {
             res.status(404).json({
@@ -40,7 +43,9 @@ export const getJobListings = async (
     next: NextFunction,
 ) => {
     try {
-        const jobListings = await JobListingModel.find();
+        const jobListings = await JobListingModel.find().populate({
+            path: "company",
+        });
 
         res.status(200).json({ success: true, data: jobListings });
     } catch (err) {
@@ -58,30 +63,46 @@ export const getJobListingsByCompany = async (
 ) => {
     try {
         const request = req as RequestWithAuth;
+        const { id: userId, role: userRole } = request.user;
 
-        const comparisonQuery = buildComparisonQuery(request.query);
+        const company = await CompanyModel.findById(request.params.id);
 
-        const baseQuery = JobListingModel.find(comparisonQuery);
+        if (!company) {
+            res.status(404).json({
+                success: false,
+                error: "Company not found",
+            });
 
-        const result = await filterAndPaginate({
-            request,
-            response: res,
-            baseQuery,
-            total: await JobListingModel.countDocuments(comparisonQuery),
+            return;
+        }
+
+        if (userRole !== "admin" && String(userId) !== String(company.owner)) {
+            res.status(403).json({
+                success: false,
+                error: "You do not have permission to view this company job listings",
+            });
+        }
+
+        const jobListings = await JobListingModel.find({
+            company: req.params.id,
+        }).populate({
+            path: "company",
         });
 
-        if (!result) return;
-
-        const interviewSessions = await result.query;
+        if (!jobListings) {
+            res.status(404).json({
+                success: false,
+                error: "No job listings found for this company",
+            });
+            return;
+        }
 
         res.status(200).json({
             success: true,
-            count: interviewSessions.length,
-            pagination: result.pagination,
-            data: interviewSessions,
+            data: jobListings,
         });
-    } catch (err) {
-        next(err);
+    } catch (error) {
+        next(error);
     }
 };
 
@@ -95,7 +116,13 @@ export async function createJobListing(
 ) {
     try {
         const jobListing = await JobListingModel.create(req.body);
-        res.status(201).json({ success: true, data: jobListing });
+        const populatedJobListing = await JobListingModel.findById(
+            jobListing._id,
+        ).populate({
+            path: "company",
+        });
+
+        res.status(201).json({ success: true, data: populatedJobListing });
     } catch (err) {
         next(err);
     }
@@ -110,14 +137,15 @@ export async function updateJobListing(
     next: NextFunction,
 ) {
     try {
-        const jobListing = await JobListingModel.findByIdAndUpdate(
+        const request = req as RequestWithAuth;
+        const { id: userId, role: userRole } = request.user;
+
+        const jobListing = await JobListingModel.findById(
             req.params.id,
-            req.body,
-            {
-                new: true,
-                runValidators: true,
-            },
-        );
+        ).populate({
+            path: "company",
+            select: "owner",
+        });
 
         if (!jobListing) {
             res.status(404).json({
@@ -128,7 +156,30 @@ export async function updateJobListing(
             return;
         }
 
-        res.status(200).json({ success: true, data: jobListing });
+        if (
+            userRole !== "admin" &&
+            String(userId) !== String(jobListing.company.owner)
+        ) {
+            res.status(403).json({
+                success: false,
+                error: "You do not have permission to update this job listing",
+            });
+
+            return;
+        }
+
+        const updatedJobListing = await JobListingModel.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            {
+                new: true,
+                runValidators: true,
+            },
+        ).populate({
+            path: "company",
+        });
+
+        res.status(200).json({ success: true, data: updatedJobListing });
     } catch (err) {
         next(err);
     }
@@ -143,12 +194,32 @@ export async function deleteJobListing(
     next: NextFunction,
 ) {
     try {
-        const jobListing = await JobListingModel.findById(req.params.id);
+        const request = req as RequestWithAuth;
+        const { id: userId, role: userRole } = request.user;
+
+        const jobListing = await JobListingModel.findById(
+            req.params.id,
+        ).populate({
+            path: "company",
+            select: "owner",
+        });
 
         if (!jobListing) {
             res.status(404).json({
                 success: false,
                 error: "Job listing not found",
+            });
+
+            return;
+        }
+
+        if (
+            userRole !== "admin" &&
+            String(userId) !== String(jobListing.company.owner)
+        ) {
+            res.status(403).json({
+                success: false,
+                error: "You do not have permission to delete this job listing",
             });
 
             return;

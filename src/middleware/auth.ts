@@ -1,7 +1,7 @@
 import { UserModel } from "@/models/User";
-import { RequestWithAuth } from "@/types/Request";
-import { NextFunction, Request, Response } from "express";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import type { RequestWithAuth } from "@/types/Request";
+import type { NextFunction, Request, Response } from "express";
+import jwt, { type JwtPayload } from "jsonwebtoken";
 
 export const protect = async (
     req: Request,
@@ -13,10 +13,7 @@ export const protect = async (
     if (!process.env.JWT_SECRET)
         throw new Error("JWT_SECRET must be defined in .env file");
 
-    if (
-        req.headers.authorization &&
-        req.headers.authorization.startsWith("Bearer")
-    )
+    if (req.headers.authorization?.startsWith("Bearer"))
         token = req.headers.authorization.split(" ")[1];
 
     if (!token) {
