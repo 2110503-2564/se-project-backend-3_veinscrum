@@ -202,6 +202,88 @@ describe("Companies Routes", () => {
             expect(response.status).toBe(400);
             expect(response.body).toHaveProperty("success", false);
         });
+
+        it("should return 403 when admin tries to create a company", async () => {
+            // Create an admin user
+            const admin = await UserModel.create({
+                name: "Admin User",
+                email: "admin@test.com",
+                password: "password123",
+                tel: "+1 (555) 444-3333",
+                role: "admin",
+            });
+
+            // Mock JWT verification to return the admin's ID
+            (jwt.verify as jest.Mock).mockReturnValue({ 
+                id: admin._id,
+                role: "admin" 
+            });
+
+            const companyData = {
+                name: "Admin's Company",
+                address: "789 Admin Ave, Admin City",
+                website: "https://adminco.com",
+                description: "Admin's company that shouldn't be created",
+                tel: "+1 (555) 333-2222",
+            };
+
+            const response = await request(app)
+                .post("/api/v1/companies")
+                .set("Authorization", "Bearer fake-jwt-token")
+                .send(companyData);
+
+            expect(response.status).toBe(403);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error", 
+                "User role 'admin' is not authorized to access this route"
+            );
+
+            // Verify company was not created in database
+            const companyInDb = await CompanyModel.findOne({ name: "Admin's Company" });
+            expect(companyInDb).toBeNull();
+        });
+
+        it("should return 403 when normal user tries to create a company", async () => {
+            // Create a regular user
+            const normalUser = await UserModel.create({
+                name: "Normal User",
+                email: "normal@test.com",
+                password: "password123",
+                tel: "+1 (555) 999-8888",
+                role: "user",
+            });
+
+            // Mock JWT verification to return the regular user's ID
+            (jwt.verify as jest.Mock).mockReturnValue({ 
+                id: normalUser._id,
+                role: "user" 
+            });
+
+            const companyData = {
+                name: "User's Company",
+                address: "123 User St, User City",
+                website: "https://userco.com",
+                description: "User's company that shouldn't be created",
+                tel: "+1 (555) 777-6666",
+            };
+
+            const response = await request(app)
+                .post("/api/v1/companies")
+                .set("Authorization", "Bearer fake-jwt-token")
+                .send(companyData);
+
+            expect(response.status).toBe(403);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error", 
+                "User role 'user' is not authorized to access this route"
+            );
+
+            // Verify company was not created in database
+            const companyInDb = await CompanyModel.findOne({ name: "User's Company" });
+            expect(companyInDb).toBeNull();
+        });
     });
 
     describe("PUT /api/v1/companies/:id", () => {

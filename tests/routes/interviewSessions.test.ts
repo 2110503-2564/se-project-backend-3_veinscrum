@@ -454,6 +454,358 @@ describe("Interview Sessions Routes", () => {
         });
     });
 
+    describe("GET /api/v1/job-listings/:id/sessions", () => {
+        it("should return interview sessions for a job listing when requested by admin", async () => {
+            // Create admin user
+            const admin = await UserModel.create({
+                name: "Admin User",
+                email: "admin@test.com",
+                password: "password123",
+                tel: "9999999999",
+                role: "admin",
+            });
+
+            // Create users
+            const user1 = await UserModel.create({
+                name: "User 1",
+                email: "user1@test.com",
+                password: "password123",
+                tel: "1111111111",
+                role: "user",
+            });
+
+            const user2 = await UserModel.create({
+                name: "User 2",
+                email: "user2@test.com",
+                password: "password123",
+                tel: "2222222222",
+                role: "user",
+            });
+
+            // Create a company owner
+            const owner = await UserModel.create({
+                name: "Company Owner",
+                email: "owner@test.com",
+                password: "password123",
+                tel: "5555555555",
+                role: "company",
+            });
+
+            // Create a company
+            const company = await CompanyModel.create({
+                name: "Test Company",
+                address: "123 Test St",
+                website: "https://test.com",
+                description: "Test description",
+                tel: "1234567890",
+                owner: owner._id,
+            });
+
+            // Create job listing
+            const jobListing = await JobListingModel.create({
+                company: company._id,
+                jobTitle: "Software Engineer",
+                description: "Develop software",
+                image: "https://example.com/image.jpg",
+            });
+
+            // Create interview sessions for this job listing
+            await InterviewSessionModel.create([
+                {
+                    jobListing: jobListing._id,
+                    user: user1._id,
+                    date: new Date("2022-05-10T10:00:00Z"),
+                },
+                {
+                    jobListing: jobListing._id,
+                    user: user2._id,
+                    date: new Date("2022-05-11T14:00:00Z"),
+                },
+            ]);
+
+            // Mock JWT verification to return the admin's ID
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: admin._id,
+                role: "admin",
+            });
+
+            const response = await request(app)
+                .get(`/api/v1/job-listings/${jobListing._id}/sessions`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(200);
+            expect(response.body).toHaveProperty("success", true);
+            expect(Array.isArray(response.body.data)).toBe(true);
+            expect(response.body.data).toHaveLength(2);
+            expect(response.body.data[0].jobListing._id.toString()).toBe(
+                jobListing._id.toString(),
+            );
+        });
+
+        it("should return all interview sessions for a job listing when requested by company owner", async () => {
+            // Create users
+            const user1 = await UserModel.create({
+                name: "User 1",
+                email: "user1@test.com",
+                password: "password123",
+                tel: "1111111111",
+                role: "user",
+            });
+
+            const user2 = await UserModel.create({
+                name: "User 2",
+                email: "user2@test.com",
+                password: "password123",
+                tel: "2222222222",
+                role: "user",
+            });
+
+            // Create a company owner
+            const owner = await UserModel.create({
+                name: "Company Owner",
+                email: "owner@test.com",
+                password: "password123",
+                tel: "5555555555",
+                role: "company",
+            });
+
+            // Create a company
+            const company = await CompanyModel.create({
+                name: "Test Company",
+                address: "123 Test St",
+                website: "https://test.com",
+                description: "Test description",
+                tel: "1234567890",
+                owner: owner._id,
+            });
+
+            // Create job listing
+            const jobListing = await JobListingModel.create({
+                company: company._id,
+                jobTitle: "Software Engineer",
+                description: "Develop software",
+                image: "https://example.com/image.jpg",
+            });
+
+            // Create interview sessions for this job listing
+            await InterviewSessionModel.create([
+                {
+                    jobListing: jobListing._id,
+                    user: user1._id,
+                    date: new Date("2022-05-10T10:00:00Z"),
+                },
+                {
+                    jobListing: jobListing._id,
+                    user: user2._id,
+                    date: new Date("2022-05-11T14:00:00Z"),
+                },
+            ]);
+
+            // Mock JWT verification to return company owner's ID
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: owner._id,
+                role: "company",
+            });
+
+            const response = await request(app)
+                .get(`/api/v1/job-listings/${jobListing._id}/sessions`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(200);
+            expect(response.body).toHaveProperty("success", true);
+            expect(Array.isArray(response.body.data)).toBe(true);
+            expect(response.body.data).toHaveLength(2);
+        });
+
+        it("should return 403 when regular user tries to access job listing sessions", async () => {
+            // Create users
+            const user1 = await UserModel.create({
+                name: "User 1",
+                email: "user1@test.com",
+                password: "password123",
+                tel: "1111111111",
+                role: "user",
+            });
+
+            const user2 = await UserModel.create({
+                name: "User 2",
+                email: "user2@test.com",
+                password: "password123",
+                tel: "2222222222",
+                role: "user",
+            });
+
+            // Create a company owner
+            const owner = await UserModel.create({
+                name: "Company Owner",
+                email: "owner@test.com",
+                password: "password123",
+                tel: "5555555555",
+                role: "company",
+            });
+
+            // Create a company
+            const company = await CompanyModel.create({
+                name: "Test Company",
+                address: "123 Test St",
+                website: "https://test.com",
+                description: "Test description",
+                tel: "1234567890",
+                owner: owner._id,
+            });
+
+            // Create job listing
+            const jobListing = await JobListingModel.create({
+                company: company._id,
+                jobTitle: "Software Engineer",
+                description: "Develop software",
+                image: "https://example.com/image.jpg",
+            });
+
+            // Create interview sessions for this job listing
+            await InterviewSessionModel.create([
+                {
+                    jobListing: jobListing._id,
+                    user: user1._id,
+                    date: new Date("2022-05-10T10:00:00Z"),
+                },
+                {
+                    jobListing: jobListing._id,
+                    user: user2._id,
+                    date: new Date("2022-05-11T14:00:00Z"),
+                },
+            ]);
+
+            // Mock JWT verification to return user1's ID
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: user1._id,
+                role: "user",
+            });
+
+            const response = await request(app)
+                .get(`/api/v1/job-listings/${jobListing._id}/sessions`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(403);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                "User role 'user' is not authorized to access this route",
+            );
+        });
+
+        it("should return all sessions for a job listing without pagination", async () => {
+            // Create admin user
+            const admin = await UserModel.create({
+                name: "Admin User",
+                email: "admin@test.com",
+                password: "password123",
+                tel: "9999999999",
+                role: "admin",
+            });
+
+            // Create a company owner
+            const owner = await UserModel.create({
+                name: "Company Owner",
+                email: "owner@test.com",
+                password: "password123",
+                tel: "5555555555",
+                role: "company",
+            });
+
+            // Create a company
+            const company = await CompanyModel.create({
+                name: "Test Company",
+                address: "123 Test St",
+                website: "https://test.com",
+                description: "Test description",
+                tel: "1234567890",
+                owner: owner._id,
+            });
+
+            // Create job listing
+            const jobListing = await JobListingModel.create({
+                company: company._id,
+                jobTitle: "Software Engineer",
+                description: "Develop software",
+                image: "https://example.com/image.jpg",
+            });
+
+            // Create multiple users and interview sessions
+            const usersToCreate = 12; // Create more than typical pagination would show
+            const users = [];
+
+            for (let i = 0; i < usersToCreate; i++) {
+                const user = await UserModel.create({
+                    name: `Pagination User ${i}`,
+                    email: `pagination${i}@test.com`,
+                    password: "password123",
+                    tel: `${1000000000 + i}`,
+                    role: "user",
+                });
+                users.push(user);
+
+                await InterviewSessionModel.create({
+                    jobListing: jobListing._id,
+                    user: user._id,
+                    date: new Date(`2022-05-10T${10 + i}:00:00Z`),
+                });
+            }
+
+            // Mock JWT verification to return admin's ID
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: admin._id,
+                role: "admin",
+            });
+
+            // Test that all sessions are returned without pagination
+            const response = await request(app)
+                .get(`/api/v1/job-listings/${jobListing._id}/sessions`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(200);
+            expect(response.body).toHaveProperty("success", true);
+            expect(response.body).toHaveProperty("data");
+            expect(Array.isArray(response.body.data)).toBe(true);
+            expect(response.body.data.length).toBe(usersToCreate); // All sessions should be returned
+            expect(response.body).not.toHaveProperty("pagination"); // No pagination property should exist
+            
+            // Each session should be for the correct job listing
+            for (const session of response.body.data) {
+                expect(session.jobListing._id).toBe(jobListing._id.toString());
+            }
+        });
+
+        it("should return 404 if job listing not found", async () => {
+            // Create admin user
+            const admin = await UserModel.create({
+                name: "Admin User",
+                email: "admin@test.com",
+                password: "password123",
+                tel: "9999999999",
+                role: "admin",
+            });
+
+            // Mock JWT verification to return the admin's ID
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: admin._id,
+                role: "admin",
+            });
+
+            const nonExistingId = new mongoose.Types.ObjectId();
+            const response = await request(app)
+                .get(`/api/v1/job-listings/${nonExistingId}/sessions`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(404);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                "Job listing not found",
+            );
+        });
+    });
+
     describe("POST /api/v1/sessions", () => {
         it("should create an interview session for a valid request", async () => {
             // Create a user
