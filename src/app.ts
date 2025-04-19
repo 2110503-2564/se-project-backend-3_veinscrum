@@ -16,26 +16,25 @@ import { usersRouter } from "@/routes/users";
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUI from "swagger-ui-express";
 
-const swaggerOptions = {
-    swaggerDefinition: {
-        openapi: "3.0.0",
-        info: {
-            title: "Library API",
-            version: "1.0.0",
-            description: "A simple Job Fair API",
-        },
-        servers: [
-            {
-                url: "http://localhost:5050/api/v1",
-            },
-        ],
-    },
-    apis: ["**/routes/*.ts"],
-};
-
 export function initializeApp() {
-    const app = express();
+    const swaggerOptions = {
+        swaggerDefinition: {
+            openapi: "3.0.0",
+            info: {
+                title: "Library API",
+                version: "1.0.0",
+                description: "A simple Job Fair API",
+            },
+            servers: [
+                {
+                    url: process.env.SERVER_URL,
+                },
+            ],
+        },
+        apis: ["**/routes/*.ts"],
+    };
 
+    const app = express();
     const swaggerDocs = swaggerJSDoc(swaggerOptions);
 
     // API docs
