@@ -447,8 +447,8 @@ export async function getInterviewSessionsByJobListing(
         }
 
         // Get all sessions for this job listing without pagination
-        const interviewSessions = await InterviewSessionModel.find({ 
-            jobListing: jobListing._id 
+        const interviewSessions = await InterviewSessionModel.find({
+            jobListing: jobListing._id,
         }).populate([
             {
                 path: "user",
@@ -465,7 +465,7 @@ export async function getInterviewSessionsByJobListing(
 
         res.status(200).json({
             success: true,
-            data: interviewSessions
+            data: interviewSessions,
         });
     } catch (err) {
         next(err);

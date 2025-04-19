@@ -767,9 +767,9 @@ describe("Interview Sessions Routes", () => {
             expect(response.body).toHaveProperty("success", true);
             expect(response.body).toHaveProperty("data");
             expect(Array.isArray(response.body.data)).toBe(true);
-            expect(response.body.data.length).toBe(usersToCreate); // All sessions should be returned
+            expect(response.body.data).toHaveLength(usersToCreate); // All sessions should be returned
             expect(response.body).not.toHaveProperty("pagination"); // No pagination property should exist
-            
+
             // Each session should be for the correct job listing
             for (const session of response.body.data) {
                 expect(session.jobListing._id).toBe(jobListing._id.toString());
