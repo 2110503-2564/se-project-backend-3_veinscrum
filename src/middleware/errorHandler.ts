@@ -9,8 +9,6 @@ export const errorHandler = (
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _next: NextFunction,
 ) => {
-    console.log("this not call");
-
     console.error(err);
 
     let statusCode = res.statusCode !== 200 ? res.statusCode : 500;
