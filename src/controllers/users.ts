@@ -27,7 +27,14 @@ export const getUsers = async (
             total,
         });
 
-        if (!result) return;
+        if (!result) {
+            res.status(400).json({
+                success: false,
+                error: "Invalid pagination parameters: 'page' and 'limit' must be positive integers.",
+            });
+
+            return;
+        }
 
         const companies = await result.query;
 
