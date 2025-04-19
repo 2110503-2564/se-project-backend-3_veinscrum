@@ -134,8 +134,8 @@ export async function getInterviewSession(
 
         if (
             userRole !== "admin" &&
-            !userId.equals(interviewSession.user._id) &&
-            !userId.equals(interviewSession.jobListing.company.owner)
+            String(userId) != String(interviewSession.user._id) &&
+            String(userId) != String(interviewSession.jobListing.company.owner)
         ) {
             res.status(403).json({
                 success: false,
@@ -194,7 +194,7 @@ export async function createInterviewSession(
             return;
         }
 
-        if (!isWithinAllowedDateRange(request.body.date)) {
+        if (!isWithinAllowedDateRange(new Date(request.body.date))) {
             res.status(400).json({
                 success: false,
                 error: "Interview sessions can only be scheduled from May 10th to May 13th, 2022",
@@ -272,7 +272,7 @@ export const updateInterviewSession = async (
             return;
         }
 
-        if (!isWithinAllowedDateRange(request.body.date)) {
+        if (!isWithinAllowedDateRange(new Date(request.body.date))) {
             res.status(400).json({
                 success: false,
                 error: "Interview sessions can only be scheduled from May 10th to May 13th, 2022",
