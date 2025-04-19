@@ -440,7 +440,7 @@ export async function getInterviewSessionsByJobListing(
         ) {
             res.status(403).json({
                 success: false,
-                error: "You do not have permission to view interview session associated with this job listing id",
+                error: "You are not authorized to view interview sessions for this job listing",
             });
 
             return;
