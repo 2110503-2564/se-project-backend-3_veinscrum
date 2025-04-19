@@ -13,7 +13,10 @@ export const getJobListing = async (
     next: NextFunction,
 ) => {
     try {
-        const jobListing = await JobListingModel.findById(req.params.id);
+        const jobListing = await JobListingModel.findById(req.params.id)
+            .populate({
+                path: "company",
+            });
 
         if (!jobListing) {
             res.status(404).json({
@@ -39,7 +42,10 @@ export const getJobListings = async (
     next: NextFunction,
 ) => {
     try {
-        const jobListings = await JobListingModel.find();
+        const jobListings = await JobListingModel.find()
+            .populate({
+                path: "company",
+            });
 
         res.status(200).json({ success: true, data: jobListings });
     } catch (err) {
@@ -110,7 +116,12 @@ export async function createJobListing(
 ) {
     try {
         const jobListing = await JobListingModel.create(req.body);
-        res.status(201).json({ success: true, data: jobListing });
+        const populatedJobListing = await JobListingModel.findById(jobListing._id)
+            .populate({
+                path: "company",
+            });
+            
+        res.status(201).json({ success: true, data: populatedJobListing });
     } catch (err) {
         next(err);
     }
@@ -163,7 +174,9 @@ export async function updateJobListing(
                 new: true,
                 runValidators: true,
             },
-        );
+        ).populate({
+            path: "company"
+        });
 
         res.status(200).json({ success: true, data: updatedJobListing });
     } catch (err) {
