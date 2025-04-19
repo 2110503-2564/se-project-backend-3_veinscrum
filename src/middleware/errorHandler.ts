@@ -1,8 +1,14 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { MongoServerError } from "mongodb"; // Import MongoDB error class
 import { MongooseError } from "mongoose";
 
-export const errorHandler = (err: unknown, req: Request, res: Response) => {
+export const errorHandler = (
+    err: unknown,
+    _req: Request,
+    res: Response,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _next: NextFunction,
+) => {
     console.error(err);
 
     let statusCode = res.statusCode !== 200 ? res.statusCode : 500;

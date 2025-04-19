@@ -13,29 +13,11 @@ import { interviewSessionsRouter } from "@/routes/interviewSessions";
 import { jobListingsRouter } from "@/routes/jobListings";
 import { usersRouter } from "@/routes/users";
 
-import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUI from "swagger-ui-express";
+import { swaggerDocs } from "./swagger";
 
 export function initializeApp() {
-    const swaggerOptions = {
-        swaggerDefinition: {
-            openapi: "3.0.0",
-            info: {
-                title: "Library API",
-                version: "1.0.0",
-                description: "A simple Job Fair API",
-            },
-            servers: [
-                {
-                    url: process.env.SERVER_URL,
-                },
-            ],
-        },
-        apis: ["**/routes/*.ts"],
-    };
-
     const app = express();
-    const swaggerDocs = swaggerJSDoc(swaggerOptions);
 
     // API docs
     app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocs));

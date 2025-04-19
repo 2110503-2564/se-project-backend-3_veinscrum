@@ -16,7 +16,7 @@ const router = Router();
 router
     .route("/")
     .get(getCompanies)
-    .post(protect, authorize("admin", "company"), createCompany);
+    .post(protect, authorize("company"), createCompany);
 
 router
     .route("/:id")

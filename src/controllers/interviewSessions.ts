@@ -206,6 +206,7 @@ export async function createInterviewSession(
         const interviewSession = await InterviewSessionModel.create(
             request.body,
         );
+
         res.status(201).json({
             success: true,
             data: interviewSession,
@@ -396,14 +397,6 @@ export async function getInterviewSessionsByUser(
             },
         ]);
 
-        if (!interviewSession) {
-            res.status(404).json({
-                success: false,
-                error: "No interview sessions found for this user",
-            });
-            return;
-        }
-
         res.status(200).json({
             success: true,
             data: interviewSession,
@@ -423,33 +416,56 @@ export async function getInterviewSessionsByJobListing(
 ) {
     try {
         const request = req as RequestWithAuth;
+        const { id: userId, role: userRole } = request.user;
 
-        const comparisonQuery = buildComparisonQuery(request.query);
-
-        comparisonQuery.jobListing = String(request.params.id);
-
-        if (request.user.role !== "admin") {
-            comparisonQuery.user = String(request.user.id);
-        }
-
-        const baseQuery = InterviewSessionModel.find(comparisonQuery);
-
-        const result = await filterAndPaginate({
-            request,
-            response: res,
-            baseQuery,
-            total: await InterviewSessionModel.countDocuments(comparisonQuery),
+        const jobListing = await JobListingModel.findById(
+            req.params.id,
+        ).populate({
+            path: "company",
+            select: "owner",
         });
 
-        if (!result) return;
+        if (!jobListing) {
+            res.status(404).json({
+                success: false,
+                error: "Job listing not found",
+            });
 
-        const sessions = await result.query;
+            return;
+        }
+
+        if (
+            userRole !== "admin" &&
+            String(userId) !== String(jobListing.company.owner)
+        ) {
+            res.status(403).json({
+                success: false,
+                error: "You are not authorized to view interview sessions for this job listing",
+            });
+
+            return;
+        }
+
+        // Get all sessions for this job listing without pagination
+        const interviewSessions = await InterviewSessionModel.find({
+            jobListing: jobListing._id,
+        }).populate([
+            {
+                path: "user",
+                select: "name email",
+            },
+            {
+                path: "jobListing",
+                populate: {
+                    path: "company",
+                    model: "Company",
+                },
+            },
+        ]);
 
         res.status(200).json({
             success: true,
-            count: sessions.length,
-            pagination: result.pagination,
-            data: sessions,
+            data: interviewSessions,
         });
     } catch (err) {
         next(err);

@@ -89,14 +89,6 @@ export const getJobListingsByCompany = async (
             path: "company",
         });
 
-        if (!jobListings) {
-            res.status(404).json({
-                success: false,
-                error: "No job listings found for this company",
-            });
-            return;
-        }
-
         res.status(200).json({
             success: true,
             data: jobListings,
