@@ -1,5 +1,6 @@
 import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
+import { UserModel } from "@/models/User";
 import { Company } from "@/types/Company";
 import { InterviewSession } from "@/types/InterviewSession";
 import { JobListing } from "@/types/JobListing";
@@ -136,7 +137,6 @@ export async function createInterviewSession(
             return;
         }
 
-
         if (!isWithinAllowedDateRange(request.body.date)) {
             res.status(400).json({
                 success: false,
@@ -204,8 +204,8 @@ export const updateInterviewSession = async (
 
         if (
             userRole !== "admin" &&
-            !userId.equals(interviewSession.user) &&
-            !userId.equals(interviewSession.jobListing.company.owner)
+            String(userId) !== String(interviewSession.user) &&
+            String(userId) !== String(interviewSession.jobListing.company.owner)
         ) {
             res.status(403).json({
                 success: false,
@@ -274,8 +274,8 @@ export async function deleteInterviewSession(
 
         if (
             userRole !== "admin" &&
-            !userId.equals(interviewSession.user) &&
-            !userId.equals(interviewSession.jobListing.company.owner)
+            String(userId) !== String(interviewSession.user) &&
+            String(userId) !== String(interviewSession.jobListing.company.owner)
         ) {
             res.status(403).json({
                 success: false,
@@ -299,6 +299,30 @@ export async function getInterviewSessionsByUser(
     next: NextFunction,
 ) {
     try {
+        const request = req as RequestWithAuth;
+        const { id: requestUserId, role: requestUserRole } = request.user;
+
+        const requestedUser = await UserModel.findById(req.params.id);
+
+        if (!requestedUser) {
+            res.status(404).json({
+                success: false,
+                error: "User not found",
+            });
+
+            return;
+        }
+
+        if (
+            requestUserRole !== "admin" &&
+            String(requestUserId) !== String(requestedUser._id)
+        ) {
+            res.status(403).json({
+                success: false,
+                error: "You do not have permission to view this user interview sessions",
+            });
+        }
+
         const interviewSession = await InterviewSessionModel.find({
             user: req.params.id,
         }).populate([
@@ -373,4 +397,4 @@ export async function getInterviewSessionsByJobListing(
     } catch (err) {
         next(err);
     }
-};
+}

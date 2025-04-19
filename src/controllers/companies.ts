@@ -132,7 +132,7 @@ export async function updateCompany(
             return;
         }
 
-        if (userRole !== "admin" && !company.owner.equals(userId)) {
+        if (userRole !== "admin" && String(userId) !== String(company.owner)) {
             res.status(403).json({
                 success: false,
                 error: "You do not have permission to update this company",
@@ -188,7 +188,7 @@ export async function deleteCompany(
             return;
         }
 
-        if (userRole !== "admin" && !company.owner.equals(userId)) {
+        if (userRole !== "admin" && String(userId) !== String(company.owner)) {
             res.status(403).json({
                 success: false,
                 error: "You do not have permission to delete this company",

@@ -1,8 +1,7 @@
+import { CompanyModel } from "@/models/Company";
 import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
 import { RequestWithAuth } from "@/types/Request";
-import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
-import { filterAndPaginate } from "@/utils/filterAndPaginate";
 import { NextFunction, Request, Response } from "express";
 
 /// @desc     Get job listing by id
@@ -58,30 +57,46 @@ export const getJobListingsByCompany = async (
 ) => {
     try {
         const request = req as RequestWithAuth;
+        const { id: userId, role: userRole } = request.user;
 
-        const comparisonQuery = buildComparisonQuery(request.query);
+        const company = await CompanyModel.findById(request.params.id);
 
-        const baseQuery = JobListingModel.find(comparisonQuery);
+        if (!company) {
+            res.status(404).json({
+                success: false,
+                error: "Company not found",
+            });
 
-        const result = await filterAndPaginate({
-            request,
-            response: res,
-            baseQuery,
-            total: await JobListingModel.countDocuments(comparisonQuery),
+            return;
+        }
+
+        if (userRole !== "admin" && String(userId) !== String(company.owner)) {
+            res.status(403).json({
+                success: false,
+                error: "You do not have permission to view this company job listings",
+            });
+        }
+
+        const jobListings = await JobListingModel.find({
+            company: req.params.id,
+        }).populate({
+            path: "company",
         });
 
-        if (!result) return;
-
-        const interviewSessions = await result.query;
+        if (!jobListings) {
+            res.status(404).json({
+                success: false,
+                error: "No job listings found for this company",
+            });
+            return;
+        }
 
         res.status(200).json({
             success: true,
-            count: interviewSessions.length,
-            pagination: result.pagination,
-            data: interviewSessions,
+            data: jobListings,
         });
-    } catch (err) {
-        next(err);
+    } catch (error) {
+        next(error);
     }
 };
 
@@ -113,7 +128,9 @@ export async function updateJobListing(
         const request = req as RequestWithAuth;
         const { id: userId, role: userRole } = request.user;
 
-        const jobListing = await JobListingModel.findById(req.params.id).populate({
+        const jobListing = await JobListingModel.findById(
+            req.params.id,
+        ).populate({
             path: "company",
             select: "owner",
         });
@@ -127,7 +144,10 @@ export async function updateJobListing(
             return;
         }
 
-        if (userRole !== "admin" && !userId.equals(jobListing.company.owner)) {
+        if (
+            userRole !== "admin" &&
+            String(userId) !== String(jobListing.company.owner)
+        ) {
             res.status(403).json({
                 success: false,
                 error: "You do not have permission to update this job listing",
@@ -163,7 +183,9 @@ export async function deleteJobListing(
         const request = req as RequestWithAuth;
         const { id: userId, role: userRole } = request.user;
 
-        const jobListing = await JobListingModel.findById(req.params.id).populate({
+        const jobListing = await JobListingModel.findById(
+            req.params.id,
+        ).populate({
             path: "company",
             select: "owner",
         });
@@ -177,7 +199,10 @@ export async function deleteJobListing(
             return;
         }
 
-        if (userRole !== "admin" && !userId.equals(jobListing.company.owner)) {
+        if (
+            userRole !== "admin" &&
+            String(userId) !== String(jobListing.company.owner)
+        ) {
             res.status(403).json({
                 success: false,
                 error: "You do not have permission to delete this job listing",
