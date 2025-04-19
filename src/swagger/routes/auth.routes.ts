@@ -16,19 +16,47 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/User'
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *               - tel
+ *               - role
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: User's full name
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: User's email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 description: User's password
+ *               tel:
+ *                 type: string
+ *                 description: User's telephone number
+ *               role:
+ *                 type: string
+ *                 enum: [user, admin, company]
+ *                 description: User's role
  *     responses:
  *       200:
- *         description: The list of users
+ *         description: Registration successful
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
  *                 success:
- *                   type: string
+ *                   type: boolean
+ *                   example: true
  *                 token:
  *                   type: string
+ *       400:
+ *         description: Invalid input data or email already in use
  */
 
 /**
@@ -46,7 +74,7 @@
  *             properties:
  *               email:
  *                 type: string
- *                 pattern: /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+ *                 pattern: /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
  *                 description: Account email
  *                 example: example@example.com
  *               password:

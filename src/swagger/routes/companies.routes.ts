@@ -13,13 +13,45 @@
  *     tags: [Companies]
  *     responses:
  *       200:
- *         description: The list of the companies
+ *         description: The list of companies (can be empty array if no companies exist)
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Company'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 count:
+ *                   type: integer
+ *                   example: 2
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     next:
+ *                       type: object
+ *                       properties:
+ *                         page:
+ *                           type: integer
+ *                           example: 2
+ *                         limit:
+ *                           type: integer
+ *                           example: 10
+ *                     prev:
+ *                       type: object
+ *                       properties:
+ *                         page:
+ *                           type: integer
+ *                           example: 1
+ *                         limit:
+ *                           type: integer
+ *                           example: 10
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Company'
+ *       400:
+ *         description: Invalid pagination parameters
  */
 
 /**
@@ -41,7 +73,13 @@
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Company'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Company'
  *       404:
  *         description: The company was not found
  */
@@ -50,7 +88,7 @@
  * @swagger
  * /companies:
  *   post:
- *     summary: Create a new company
+ *     summary: Create a new company (Company role only)
  *     tags: [Companies]
  *     security:
  *       - bearerAuth: []
@@ -59,16 +97,47 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Company'
+ *             type: object
+ *             required:
+ *               - name
+ *               - address
+ *               - description
+ *               - tel
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Company name
+ *               address:
+ *                 type: string
+ *                 description: Company address
+ *               website:
+ *                 type: string
+ *                 description: Company website
+ *               description:
+ *                 type: string
+ *                 description: Company description
+ *               tel:
+ *                 type: string
+ *                 description: Company telephone
  *     responses:
  *       201:
  *         description: The company was successfully created
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Company'
- *       500:
- *         description: Some server error
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Company'
+ *       400:
+ *         description: Invalid input data
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Not authorized - only users with 'company' role can create companies
  */
 
 /**
@@ -109,6 +178,17 @@
  * @swagger
  * /companies/{id}:
  *   delete:
+ *   content:
+ *      application/json:
+ *          schema:
+ *          type: object
+ *          properties:
+ *              success:
+ *              type: boolean
+ *              example: true
+ *              data:
+ *              type: object
+ *              example: {}
  *     summary: Remove the company by id
  *     tags: [Companies]
  *     security:
