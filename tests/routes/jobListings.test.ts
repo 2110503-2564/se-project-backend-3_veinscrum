@@ -149,7 +149,7 @@ describe("Job Listings Routes", () => {
             expect(response.status).toBe(200);
             expect(response.body).toHaveProperty("success", true);
             expect(response.body).toHaveProperty("data");
-            expect(response.body.data.length).toBe(2);
+            expect(response.body.data).toHaveLength(2);
 
             const titles = response.body.data.map(
                 (job: JobListing) => job.jobTitle,
@@ -220,7 +220,7 @@ describe("Job Listings Routes", () => {
             expect(response.status).toBe(200);
             expect(response.body).toHaveProperty("success", true);
             expect(response.body).toHaveProperty("data");
-            expect(response.body.data.length).toBe(2);
+            expect(response.body.data).toHaveLength(2);
 
             // Both job listings should be from company1
             for (const jobListing of response.body.data) {
@@ -619,7 +619,7 @@ describe("Job Listings Routes", () => {
             const sessions = await InterviewSessionModel.find({
                 jobListing: jobListing._id,
             });
-            expect(sessions.length).toBe(0);
+            expect(sessions).toHaveLength(0);
         });
     });
 

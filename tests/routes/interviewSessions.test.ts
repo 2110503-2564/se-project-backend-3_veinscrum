@@ -426,7 +426,7 @@ describe("Interview Sessions Routes", () => {
             expect(response.status).toBe(200);
             expect(response.body).toHaveProperty("success", true);
             expect(response.body).toHaveProperty("data");
-            expect(response.body.data.length).toBe(2);
+            expect(response.body.data).toHaveLength(2);
         });
 
         it("should return 403 when a non-admin tries to access all sessions", async () => {

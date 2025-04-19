@@ -78,7 +78,7 @@ describe("Companies Routes", () => {
             expect(response.body).toHaveProperty("success", true);
             expect(response.body).toHaveProperty("data");
             expect(response.body.count).toBe(2);
-            expect(response.body.data.length).toBe(2);
+            expect(response.body.data).toHaveLength(2);
 
             // Check for company names in the response, order might vary
             const companyNames = response.body.data.map((c: Company) => c.name);
@@ -379,7 +379,7 @@ describe("Companies Routes", () => {
             const remainingJobListings = await JobListingModel.find({
                 company: company._id,
             });
-            expect(remainingJobListings.length).toBe(0);
+            expect(remainingJobListings).toHaveLength(0);
 
             // Verify associated interview sessions were deleted
             const remainingSessionsForJobListing1 =
@@ -390,8 +390,8 @@ describe("Companies Routes", () => {
                 await InterviewSessionModel.find({
                     jobListing: jobListings[1]._id,
                 });
-            expect(remainingSessionsForJobListing1.length).toBe(0);
-            expect(remainingSessionsForJobListing2.length).toBe(0);
+            expect(remainingSessionsForJobListing1).toHaveLength(0);
+            expect(remainingSessionsForJobListing2).toHaveLength(0);
         });
 
         it("should return 404 if company to delete is not found", async () => {
