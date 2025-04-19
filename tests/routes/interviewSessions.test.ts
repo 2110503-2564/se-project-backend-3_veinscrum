@@ -1,9 +1,10 @@
 import { initializeApp } from "@/app";
+
 import { CompanyModel } from "@/models/Company";
 import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
 import { UserModel } from "@/models/User";
-import { Express } from "express";
+import type { Express } from "express";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import request from "supertest";
@@ -845,7 +846,14 @@ describe("Interview Sessions Routes", () => {
             const updatedSession = await InterviewSessionModel.findById(
                 session._id,
             );
-            expect(new Date(updatedSession!.date).toISOString()).toBe(
+
+            expect(updatedSession).toBeDefined();
+
+            if (!updatedSession) {
+                throw new Error("Unreachable");
+            }
+
+            expect(new Date(updatedSession.date).toISOString()).toBe(
                 new Date("2022-05-11T14:00:00Z").toISOString(),
             );
         });

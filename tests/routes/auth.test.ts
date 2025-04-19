@@ -1,6 +1,6 @@
 import { initializeApp } from "@/app";
 import { UserModel } from "@/models/User";
-import { Express } from "express";
+import type { Express } from "express";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import request from "supertest";
@@ -40,7 +40,6 @@ describe("Auth Routes", () => {
                 _id: "mockid123",
                 getSignedJwtToken: jest.fn().mockReturnValue("test-token"),
             };
-
             (UserModel.create as jest.Mock).mockResolvedValue(mockUser);
 
             const response = await request(app)
@@ -63,7 +62,11 @@ describe("Auth Routes", () => {
             };
 
             const error = new mongoose.Error.ValidationError();
-            error.errors.email = { error: "Email already exists" } as any;
+            error.errors.email = new mongoose.Error.ValidatorError({
+                message: "Email already exists",
+                path: "email",
+                value: userData.email,
+            });
 
             (UserModel.create as jest.Mock).mockRejectedValue(error);
 
@@ -89,7 +92,6 @@ describe("Auth Routes", () => {
                 matchPassword: jest.fn().mockResolvedValue(true),
                 getSignedJwtToken: jest.fn().mockReturnValue("test-token"),
             };
-
             (UserModel.findOne as jest.Mock).mockReturnValue({
                 select: jest.fn().mockResolvedValue(mockUser),
             });
@@ -113,7 +115,6 @@ describe("Auth Routes", () => {
                 email: loginData.email,
                 matchPassword: jest.fn().mockResolvedValue(false),
             };
-
             (UserModel.findOne as jest.Mock).mockReturnValue({
                 select: jest.fn().mockResolvedValue(mockUser),
             });
@@ -134,7 +135,6 @@ describe("Auth Routes", () => {
                 name: "Test User",
                 email: "test@example.com",
             };
-
             (jwt.verify as jest.Mock).mockReturnValue({ id: "mockid123" });
             (UserModel.findById as jest.Mock).mockResolvedValue(mockUser);
 
@@ -169,7 +169,6 @@ describe("Auth Routes", () => {
                     .fn()
                     .mockReturnValue("integration-token"),
             };
-
             (UserModel.create as jest.Mock).mockResolvedValue(createdUser);
 
             // Register the user

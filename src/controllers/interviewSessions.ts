@@ -1,17 +1,17 @@
 import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
 import { UserModel } from "@/models/User";
-import { Company } from "@/types/Company";
-import { InterviewSession } from "@/types/InterviewSession";
-import { JobListing } from "@/types/JobListing";
-import { RequestWithAuth } from "@/types/Request";
-import { POSTRegisterInterviewSessionRequest } from "@/types/api/v1/sessions/POST";
-import { PUTUpdateInterviewSessionRequest } from "@/types/api/v1/sessions/PUT";
+import type { Company } from "@/types/Company";
+import type { InterviewSession } from "@/types/InterviewSession";
+import type { JobListing } from "@/types/JobListing";
+import type { RequestWithAuth } from "@/types/Request";
+import type { POSTRegisterInterviewSessionRequest } from "@/types/api/v1/sessions/POST";
+import type { PUTUpdateInterviewSessionRequest } from "@/types/api/v1/sessions/PUT";
 import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
 import { filterAndPaginate } from "@/utils/filterAndPaginate";
 import { isWithinAllowedDateRange } from "@/utils/isWithinAllowedDateRange";
-import { NextFunction, Request, Response } from "express";
-import mongoose from "mongoose";
+import type { NextFunction, Request, Response } from "express";
+import type mongoose from "mongoose";
 
 // @desc    Get all interview sessions
 // @route   GET /api/v1/sessions
@@ -134,8 +134,8 @@ export async function getInterviewSession(
 
         if (
             userRole !== "admin" &&
-            String(userId) != String(interviewSession.user._id) &&
-            String(userId) != String(interviewSession.jobListing.company.owner)
+            String(userId) !== String(interviewSession.user._id) &&
+            String(userId) !== String(interviewSession.jobListing.company.owner)
         ) {
             res.status(403).json({
                 success: false,

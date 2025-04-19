@@ -1,9 +1,9 @@
 import { UserModel } from "@/models/User";
-import { POSTUserLoginRequest } from "@/types/api/v1/auth/login/POST";
-import { POSTUserRegisterRequest } from "@/types/api/v1/auth/register/POST";
-import { RequestWithAuth } from "@/types/Request";
-import { User } from "@/types/User";
-import { NextFunction, Request, Response } from "express";
+import type { POSTUserLoginRequest } from "@/types/api/v1/auth/login/POST";
+import type { POSTUserRegisterRequest } from "@/types/api/v1/auth/register/POST";
+import type { RequestWithAuth } from "@/types/Request";
+import type { User } from "@/types/User";
+import type { NextFunction, Request, Response } from "express";
 
 const sendTokenResponse = (user: User, statusCode: number, res: Response) => {
     const token = user.getSignedJwtToken();
@@ -108,11 +108,7 @@ export const login = async (
 /// @desc     Logout user
 /// @route    GET /api/v1/auth/logout
 /// @access   Private
-export const logout = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-): Promise<void> => {
+export const logout = async (req: Request, res: Response): Promise<void> => {
     res.cookie("token", "none", {
         expires: new Date(Date.now() + 10 * 1000),
         httpOnly: true,
@@ -124,11 +120,7 @@ export const logout = async (
 /// @desc     Get current logged in user
 /// @route    GET /api/v1/auth/me
 /// @access   Private
-export const getMe = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-): Promise<void> => {
+export const getMe = async (req: Request, res: Response): Promise<void> => {
     const request = req as RequestWithAuth;
     const { id } = request.user;
 

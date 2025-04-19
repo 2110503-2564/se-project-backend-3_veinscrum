@@ -1,8 +1,8 @@
 import { UserModel } from "@/models/User";
-import { RequestWithAuth } from "@/types/Request";
+import type { RequestWithAuth } from "@/types/Request";
 import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
 import { filterAndPaginate } from "@/utils/filterAndPaginate";
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 
 /// @desc     Get users (query is allowed)
 /// @route    GET /api/v1/users

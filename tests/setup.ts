@@ -9,7 +9,9 @@ process.env.NODE_ENV = "test";
 
 // Global variable to store MongoDB instance (must be compatible with Jest's globals)
 declare global {
+    // eslint-disable-next-line no-var
     var mongoServer: MongoMemoryServer;
+    // eslint-disable-next-line no-var
     var mongoUri: string;
 }
 

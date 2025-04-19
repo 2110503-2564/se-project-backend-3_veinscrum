@@ -1,5 +1,5 @@
-import { Request, Response } from "express";
-import { Document, Query } from "mongoose";
+import type { Request, Response } from "express";
+import type { Document, Query } from "mongoose";
 
 interface PaginationPage {
     page: number;
@@ -22,7 +22,7 @@ async function applyPagination<T extends Document>(
 
     const paginationResult: PaginationResult = {};
 
-    if (limit == -1) {
+    if (limit === -1) {
         return paginationResult;
     }
 
@@ -34,7 +34,7 @@ async function applyPagination<T extends Document>(
         paginationResult.prev = { page: page - 1, limit };
     }
 
-    query = query.skip(startIndex).limit(limit);
+    query.skip(startIndex).limit(limit);
 
     return paginationResult;
 }
@@ -44,7 +44,7 @@ function applyFieldSelection<T extends Document>(
     select: string,
 ): Query<T[], T> {
     const fields = select.split(",").join(" ");
-    query = query.select(fields);
+    query.select(fields);
     return query;
 }
 
@@ -53,7 +53,7 @@ function applySortingOrder<T extends Document>(
     sort: string,
 ): Query<T[], T> {
     const sortBy = sort.split(",").join(" ");
-    query = query.sort(sortBy);
+    query.sort(sortBy);
     return query;
 }
 
@@ -62,19 +62,18 @@ function validatePaginationParams(
     limitParam: unknown,
     res: Response,
 ): { page: number | null; limit: number | null } {
-    let page = parseInt(pageParam as string, 10) || 1;
-    let limit = parseInt(limitParam as string, 10) || 25;
+    const page = Number.parseInt(pageParam as string, 10) || 1;
+    const limit = Number.parseInt(limitParam as string, 10) || 25;
 
-    if (limit == -1 && page != 1) {
+    if (limit === -1 && page !== 1) {
         res.status(400).json({
             success: false,
-            error:
-                "For a complete list load, the page must always be set to 1.",
+            error: "For a complete list load, the page must always be set to 1.",
         });
         return { page: null, limit: null };
     }
 
-    if (isNaN(page) || page <= 0) {
+    if (Number.isNaN(page) || page <= 0) {
         res.status(400).json({
             success: false,
             error: "Invalid page number",
@@ -82,7 +81,7 @@ function validatePaginationParams(
         return { page: null, limit: null };
     }
 
-    if (isNaN(limit) || limit < -1 || limit == 0) {
+    if (Number.isNaN(limit) || limit < -1 || limit === 0) {
         res.status(400).json({
             success: false,
             error: "Invalid limit number",

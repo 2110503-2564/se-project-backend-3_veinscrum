@@ -1,5 +1,5 @@
-import { Company } from "@/types/Company";
-import { RequestWithAuth } from "@/types/Request";
+import type { Company } from "@/types/Company";
+import type { RequestWithAuth } from "@/types/Request";
 
 export interface POSTCompanyRequest extends RequestWithAuth {
     body: Omit<Company, "owner">;

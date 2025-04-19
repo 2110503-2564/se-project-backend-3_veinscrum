@@ -244,4 +244,3 @@ export { router as jobListingsRouter };
  *       404:
  *         description: The job listing was not found
  */
-

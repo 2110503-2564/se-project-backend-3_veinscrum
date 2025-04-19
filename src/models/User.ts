@@ -2,8 +2,8 @@ import * as bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import * as mongoose from "mongoose";
 
-import { User } from "@/types/User";
-import { SignOptions } from "jsonwebtoken";
+import type { User } from "@/types/User";
+import type { SignOptions } from "jsonwebtoken";
 
 const UserSchema = new mongoose.Schema<User>({
     name: {
@@ -32,8 +32,8 @@ const UserSchema = new mongoose.Schema<User>({
         enum: ["user", "admin", "company"],
         default: "user",
     },
-    company:{
-        type:mongoose.Schema.Types.ObjectId,
+    company: {
+        type: mongoose.Schema.Types.ObjectId,
         default: null,
     },
     password: {

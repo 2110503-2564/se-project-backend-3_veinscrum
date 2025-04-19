@@ -1,4 +1,4 @@
-import { Document } from "mongoose";
+import type { Document } from "mongoose";
 
 interface JobListing extends Document<mongoose.Types.ObjectId> {
     company: mongoose.Types.ObjectId;
@@ -7,4 +7,3 @@ interface JobListing extends Document<mongoose.Types.ObjectId> {
     description: string;
     createdAt: Date;
 }
-

@@ -4,7 +4,7 @@ export function buildComparisonQuery(query: qs.ParsedQs): qs.ParsedQs {
     const filteredQuery: qs.ParsedQs = {};
 
     for (const key in query) {
-        if (query.hasOwnProperty(key) && !EXCLUDED_QUERY_FIELDS.includes(key)) {
+        if (!EXCLUDED_QUERY_FIELDS.includes(key)) {
             filteredQuery[key] = query[key];
         }
     }

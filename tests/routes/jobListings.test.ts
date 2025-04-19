@@ -3,9 +3,9 @@ import { CompanyModel } from "@/models/Company";
 import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
 import { UserModel } from "@/models/User";
-import { Company } from "@/types/Company";
-import { JobListing } from "@/types/JobListing";
-import { Express } from "express";
+import type { Company } from "@/types/Company";
+import type { JobListing } from "@/types/JobListing";
+import type { Express } from "express";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import request from "supertest";
@@ -151,7 +151,9 @@ describe("Job Listings Routes", () => {
             expect(response.body).toHaveProperty("data");
             expect(response.body.data.length).toBe(2);
 
-            const titles = response.body.data.map((job: any) => job.jobTitle);
+            const titles = response.body.data.map(
+                (job: JobListing) => job.jobTitle,
+            );
             expect(titles).toContain("Frontend Developer");
             expect(titles).toContain("Backend Developer");
         });
@@ -208,7 +210,6 @@ describe("Job Listings Routes", () => {
                     image: "https://example.com/b.jpg",
                 },
             ]);
-
             // Mock JWT verification to return the owner's ID
             (jwt.verify as jest.Mock).mockReturnValue({ id: companyUser._id });
 
@@ -222,7 +223,7 @@ describe("Job Listings Routes", () => {
             expect(response.body.data.length).toBe(2);
 
             // Both job listings should be from company1
-            response.body.data.forEach((jobListing: any) => {
+            for (const jobListing of response.body.data) {
                 expect(
                     String(
                         (
@@ -232,7 +233,7 @@ describe("Job Listings Routes", () => {
                         ).company._id,
                     ),
                 ).toBe(String(company1._id));
-            });
+            }
         });
     });
 

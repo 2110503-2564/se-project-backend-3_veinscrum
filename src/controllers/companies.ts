@@ -2,11 +2,11 @@ import { CompanyModel } from "@/models/Company";
 import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
 import { UserModel } from "@/models/User";
-import { POSTCompanyRequest } from "@/types/api/v1/companies/POST";
-import { RequestWithAuth } from "@/types/Request";
+import type { POSTCompanyRequest } from "@/types/api/v1/companies/POST";
+import type { RequestWithAuth } from "@/types/Request";
 import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
 import { filterAndPaginate } from "@/utils/filterAndPaginate";
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 
 /// @desc     Get companies (query is allowed)
 /// @route    GET /api/v1/companies
