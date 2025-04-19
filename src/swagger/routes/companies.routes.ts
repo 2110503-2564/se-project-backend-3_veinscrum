@@ -178,17 +178,6 @@
  * @swagger
  * /companies/{id}:
  *   delete:
- *   content:
- *      application/json:
- *          schema:
- *          type: object
- *          properties:
- *              success:
- *              type: boolean
- *              example: true
- *              data:
- *              type: object
- *              example: {}
  *     summary: Remove the company by id
  *     tags: [Companies]
  *     security:
@@ -203,6 +192,17 @@
  *     responses:
  *       200:
  *         description: The company was deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   example: {}
  *       404:
  *         description: The company was not found
  */

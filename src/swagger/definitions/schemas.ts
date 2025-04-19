@@ -48,7 +48,7 @@
  *         company: 8056da561123452d88d367be
  *         password: Pa55w0rD
  *         createdAt: 2025-04-12
- * 
+ *
  *     Company:
  *       type: object
  *       required:
@@ -93,7 +93,7 @@
  *         tel: 0123456789
  *         owner: 8056da561123452d88d367be
  *         createdAt: 2025-04-12
- * 
+ *
  *     JobListing:
  *       type: object
  *       required:
@@ -161,7 +161,7 @@
  *         description: "Build great software"
  *         image: "https://example.com/job.jpg"
  *         createdAt: "2025-04-12"
- * 
+ *
  *     InterviewSession:
  *       type: object
  *       required:

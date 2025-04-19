@@ -214,9 +214,9 @@ describe("Companies Routes", () => {
             });
 
             // Mock JWT verification to return the admin's ID
-            (jwt.verify as jest.Mock).mockReturnValue({ 
+            (jwt.verify as jest.Mock).mockReturnValue({
                 id: admin._id,
-                role: "admin" 
+                role: "admin",
             });
 
             const companyData = {
@@ -235,12 +235,14 @@ describe("Companies Routes", () => {
             expect(response.status).toBe(403);
             expect(response.body).toHaveProperty("success", false);
             expect(response.body).toHaveProperty(
-                "error", 
-                "User role 'admin' is not authorized to access this route"
+                "error",
+                "User role 'admin' is not authorized to access this route",
             );
 
             // Verify company was not created in database
-            const companyInDb = await CompanyModel.findOne({ name: "Admin's Company" });
+            const companyInDb = await CompanyModel.findOne({
+                name: "Admin's Company",
+            });
             expect(companyInDb).toBeNull();
         });
 
@@ -255,9 +257,9 @@ describe("Companies Routes", () => {
             });
 
             // Mock JWT verification to return the regular user's ID
-            (jwt.verify as jest.Mock).mockReturnValue({ 
+            (jwt.verify as jest.Mock).mockReturnValue({
                 id: normalUser._id,
-                role: "user" 
+                role: "user",
             });
 
             const companyData = {
@@ -276,12 +278,14 @@ describe("Companies Routes", () => {
             expect(response.status).toBe(403);
             expect(response.body).toHaveProperty("success", false);
             expect(response.body).toHaveProperty(
-                "error", 
-                "User role 'user' is not authorized to access this route"
+                "error",
+                "User role 'user' is not authorized to access this route",
             );
 
             // Verify company was not created in database
-            const companyInDb = await CompanyModel.findOne({ name: "User's Company" });
+            const companyInDb = await CompanyModel.findOne({
+                name: "User's Company",
+            });
             expect(companyInDb).toBeNull();
         });
     });

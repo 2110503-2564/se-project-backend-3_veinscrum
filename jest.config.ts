@@ -24,6 +24,7 @@ const config: Config = {
     // An array of glob patterns indicating a set of files for which coverage information should be collected
     collectCoverageFrom: [
         "src/**/*.ts",
+        "!src/swagger/**",
         "!**/node_modules/**",
         "!**/dist/**",
         "!**/*.d.ts",
@@ -165,7 +166,7 @@ const config: Config = {
         "**/tests/**/*.[jt]s?(x)",
         "**/tests/?(*.)+(spec|test).[tj]s?(x)",
         "!**/tests/**/setup.ts",
-        "!**/src/**/swagger/*",
+        "!**/src/swagger/**",
     ],
 
     // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
