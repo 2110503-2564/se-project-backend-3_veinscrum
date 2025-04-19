@@ -192,7 +192,6 @@ describe("Companies Routes", () => {
             const invalidCompanyData = {
                 name: "Incomplete Company",
                 // Missing required fields
-                owner: owner._id,
             };
 
             const response = await request(app)
@@ -441,7 +440,6 @@ describe("Companies Routes", () => {
                 website: "https://lifecycletest.com",
                 description: "Testing company lifecycle",
                 tel: "+1 (555) 123-4567",
-                owner: owner._id,
             };
 
             // Create the company

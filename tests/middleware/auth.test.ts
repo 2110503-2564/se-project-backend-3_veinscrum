@@ -1,13 +1,13 @@
-import { initializeApp } from "@/app";
 import { authorize, protect } from "@/middleware/auth";
 import { UserModel } from "@/models/User";
 import { RequestWithAuth } from "@/types/Request";
 import { User } from "@/types/User";
-import { Express, Request, Response } from "express";
+import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 
 jest.mock("@/models/User");
+
 jest.mock("jsonwebtoken", () => ({
     __esModule: true,
     default: {
@@ -16,12 +16,6 @@ jest.mock("jsonwebtoken", () => ({
         JsonWebTokenError: class JsonWebTokenError extends Error {},
     },
 }));
-
-let app: Express;
-
-beforeAll(() => {
-    app = initializeApp();
-});
 
 describe("Auth Middleware", () => {
     let req: Partial<Request>;
