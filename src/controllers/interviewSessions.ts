@@ -31,7 +31,27 @@ export async function getInterviewSessions(
         }
 
         const baseQuery = InterviewSessionModel.find(comparisonQuery).populate(
-            request.user.role === "admin" ? "company user" : "company",
+            request.user.role === "admin"
+                ? [
+                      {
+                          path: "user",
+                          select: "name email",
+                      },
+                      {
+                          path: "jobListing",
+                          populate: {
+                              path: "company",
+                              model: "Company",
+                          },
+                      },
+                  ]
+                : {
+                      path: "jobListing",
+                      populate: {
+                          path: "company",
+                          model: "Company",
+                      },
+                  },
         );
 
         const result = await filterAndPaginate({
@@ -65,24 +85,61 @@ export async function getInterviewSessions(
 
 // @desc    Get single interview session
 // @route   GET /api/v1/sessions/:id
-// @access  Public
+// @access  Private - Only accessible by the user who created it, the company owner, or an admin
 export async function getInterviewSession(
     req: Request,
     res: Response,
     next: NextFunction,
 ) {
     try {
-        const interviewSession = await InterviewSessionModel.findById(
-            req.params.id,
-        ).populate({
-            path: "user",
-            select: "name email",
-        });
+        const request = req as RequestWithAuth;
+        const { id: userId, role: userRole } = request.user;
 
-        if (!interviewSession) {
+        const rawInterviewSession = await InterviewSessionModel.findById(
+            req.params.id,
+        ).populate([
+            {
+                path: "user",
+                select: "name email role",
+            },
+            {
+                path: "jobListing",
+                populate: {
+                    path: "company",
+                    model: "Company",
+                },
+            },
+        ]);
+
+        if (!rawInterviewSession) {
             res.status(404).json({
                 success: false,
                 error: `No interview session found with id ${req.params.id}`,
+            });
+            return;
+        }
+
+        const interviewSession =
+            rawInterviewSession as unknown as InterviewSession & {
+                jobListing: JobListing & { company: Company };
+            } & Required<{ _id: mongoose.Types.ObjectId }>;
+
+        if (!interviewSession.jobListing) {
+            res.status(404).json({
+                success: false,
+                error: "Job listing associated with this interview session no longer exists",
+            });
+            return;
+        }
+
+        if (
+            userRole !== "admin" &&
+            !userId.equals(interviewSession.user._id) &&
+            !userId.equals(interviewSession.jobListing.company.owner)
+        ) {
+            res.status(403).json({
+                success: false,
+                error: "You do not have permission to view this interview session",
             });
             return;
         }
