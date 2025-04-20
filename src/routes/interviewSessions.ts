@@ -13,11 +13,7 @@ const router = Router({ mergeParams: true });
 router
     .route("/")
     .get(protect, authorize("admin"), getInterviewSessions)
-    .post(
-        protect,
-        authorize("admin", "user", "company"),
-        createInterviewSession,
-    );
+    .post(protect, authorize("user"), createInterviewSession);
 
 router
     .route("/:id")
