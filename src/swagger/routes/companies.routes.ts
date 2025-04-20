@@ -9,7 +9,7 @@
  * @swagger
  * /companies:
  *   get:
- *     summary: Returns the list of all the companies
+ *     summary: Returns the list of all the companies (Public)
  *     tags: [Companies]
  *     responses:
  *       200:
@@ -57,7 +57,7 @@
  * @swagger
  * /companies/{id}:
  *   get:
- *     summary: Get the company by id
+ *     summary: Get the company by id (Public)
  *     tags: [Companies]
  *     parameters:
  *       - in: path
@@ -161,7 +161,7 @@
  * @swagger
  * /companies/{id}:
  *   put:
- *     summary: Update the company by the id
+ *     summary: Update the company by the id (Admin or Company owner only)
  *     tags: [Companies]
  *     security:
  *       - bearerAuth: []
@@ -185,6 +185,10 @@
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Company'
+ *       401:
+ *         description: Unauthorized - Not authenticated
+ *       403:
+ *         description: Forbidden - Not authorized to update this company
  *       404:
  *         description: The company was not found
  *       500:
@@ -195,7 +199,7 @@
  * @swagger
  * /companies/{id}:
  *   delete:
- *     summary: Remove the company by id
+ *     summary: Remove the company by id (Admin or Company owner only)
  *     tags: [Companies]
  *     security:
  *       - bearerAuth: []
@@ -220,6 +224,10 @@
  *                 data:
  *                   type: object
  *                   example: {}
+ *       401:
+ *         description: Unauthorized - Not authenticated
+ *       403:
+ *         description: Forbidden - Not authorized to delete this company
  *       404:
  *         description: The company was not found
  */

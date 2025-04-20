@@ -52,9 +52,18 @@ function applySortingOrder<T extends Document>(
     query: Query<T[], T>,
     sort: string,
 ): Query<T[], T> {
-    const sortBy = sort.split(",").join(" ");
-    query.sort(sortBy);
-    return query;
+    const sortFields: string[] = sort.split(",").filter(field => field.trim() !== "");
+    const sortBy: { [key: string]: 1 | -1 } = { _id: -1 };
+
+    sortFields.forEach((field: string) => {
+        if (field.startsWith("-")) {
+            sortBy[field.slice(1)] = -1;
+        } else {
+            sortBy[field] = 1;
+        }
+    });
+
+    return query.sort(sortBy);
 }
 
 function validatePaginationParams(

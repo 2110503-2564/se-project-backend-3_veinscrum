@@ -8,7 +8,7 @@
  * @swagger
  * /sessions:
  *   get:
- *     summary: Returns the list of all the sessions (Admin sees all, users see only their own)
+ *     summary: Returns the list of all the sessions (Admin only)
  *     tags: [Interview Sessions]
  *     security:
  *       - bearerAuth: []
@@ -103,7 +103,7 @@
  * @swagger
  * /sessions:
  *   post:
- *     summary: Create a new session (Limited to 3 per user for non-admin)
+ *     summary: Create a new session (User role only)
  *     tags: [Interview Sessions]
  *     security:
  *       - bearerAuth: []
@@ -148,6 +148,8 @@
  *         description: Invalid input - Date not within allowed range or session limit reached
  *       401:
  *         description: Unauthorized - Not authenticated
+ *       403:
+ *         description: Forbidden - Only users with 'user' role can create sessions
  *       404:
  *         description: Job listing not found
  */

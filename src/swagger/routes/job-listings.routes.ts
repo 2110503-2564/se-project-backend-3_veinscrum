@@ -173,7 +173,7 @@
  * @swagger
  * /job-listings:
  *   post:
- *     summary: Create a new job listing (Admin or Company role only)
+ *     summary: Create a new job listing (Company role only)
  *     tags: [Job Listings]
  *     security:
  *       - bearerAuth: []
@@ -310,7 +310,7 @@
  * @swagger
  * /job-listings/{id}/sessions:
  *   get:
- *     summary: Get interview sessions by job listing (Authenticated users only)
+ *     summary: Get interview sessions by job listing (Admin or Company role only)
  *     tags: [Job Listings, Interview Sessions]
  *     security:
  *       - bearerAuth: []

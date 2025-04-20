@@ -14,7 +14,7 @@ const router = Router();
 router
     .route("/")
     .get(protect, authorize("admin"), getJobListings)
-    .post(protect, authorize("admin", "company"), createJobListing);
+    .post(protect, authorize("company"), createJobListing);
 
 router
     .route("/:id")
