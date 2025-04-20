@@ -64,10 +64,11 @@ export const getCompany = async (
     next: NextFunction,
 ) => {
     try {
-        const company = await CompanyModel.findById(req.params.id).populate({
-            path: "jobListings",
-            select: "+logo",
-        });
+        const company = await CompanyModel.findById(req.params.id)
+            .select("+logo")
+            .populate({
+                path: "jobListings",
+            });
 
         if (!company) {
             res.status(404).json({

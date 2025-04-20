@@ -15,13 +15,11 @@ export const getJobListing = async (
     next: NextFunction,
 ) => {
     try {
-        const jobListing = await JobListingModel.findById(
-            req.params.id,
-        )
-        .select("+image")
-        .populate({
-            path: "company",
-        });
+        const jobListing = await JobListingModel.findById(req.params.id)
+            .select("+image")
+            .populate({
+                path: "company",
+            });
 
         if (!jobListing) {
             res.status(404).json({
