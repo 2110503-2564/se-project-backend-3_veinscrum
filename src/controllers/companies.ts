@@ -3,6 +3,7 @@ import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
 import { UserModel } from "@/models/User";
 import type { POSTCompanyRequest } from "@/types/api/v1/companies/POST";
+import { JobListing } from "@/types/JobListing";
 import type { RequestWithAuth } from "@/types/Request";
 import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
 import { filterAndPaginate } from "@/utils/filterAndPaginate";
@@ -20,12 +21,9 @@ export const getCompanies = async (
         const request = req as RequestWithAuth;
 
         const comparisonQuery = buildComparisonQuery(request.query);
-        const baseQuery = CompanyModel.find(comparisonQuery)
-            .select("-logo")
-            .populate({
-                path: "jobListings",
-                select: "-image",
-            });
+        const baseQuery = CompanyModel.find(comparisonQuery).populate({
+            path: "jobListings",
+        });
         const total = await CompanyModel.countDocuments();
 
         const result = await filterAndPaginate({
@@ -66,10 +64,11 @@ export const getCompany = async (
     next: NextFunction,
 ) => {
     try {
-        const company = await CompanyModel.findById(req.params.id).populate({
-            path: "jobListings",
-            select: "-image",
-        });
+        const company = await CompanyModel.findById(req.params.id)
+            .select("+logo")
+            .populate({
+                path: "jobListings",
+            });
 
         if (!company) {
             res.status(404).json({
@@ -227,7 +226,7 @@ export async function deleteCompany(
             company: company._id,
         })
             .select("_id")
-            .then((jobs) => jobs.map((job) => job._id));
+            .then((jobs: JobListing[]) => jobs.map((job) => job._id));
 
         if (jobListingIds.length > 0) {
             await InterviewSessionModel.deleteMany({

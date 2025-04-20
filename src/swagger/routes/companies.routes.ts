@@ -53,7 +53,6 @@
  *       400:
  *         description: Invalid pagination parameters
  */
-
 /**
  * @swagger
  * /companies/{id}:
@@ -69,7 +68,7 @@
  *         description: The company id
  *     responses:
  *       200:
- *         description: The company description by id
+ *         description: The company description by id with populated logo field
  *         content:
  *           application/json:
  *             schema:
@@ -79,7 +78,25 @@
  *                   type: boolean
  *                   example: true
  *                 data:
- *                   $ref: '#/components/schemas/Company'
+ *                   allOf:
+ *                     - $ref: '#/components/schemas/Company'
+ *                     - type: object
+ *                       properties:
+ *                         logo:
+ *                           type: string
+ *                           format: byte
+ *                           description: Base64 encoded logo image data
+ *             example:
+ *               success: true
+ *               data:
+ *                 _id: "8056da561123452d88d367be"
+ *                 name: "Tech Company"
+ *                 address: "123 Main St"
+ *                 website: "https://example.com"
+ *                 description: "A technology company"
+ *                 tel: "0123456789"
+ *                 owner: "7056da561123452d88d367bc"
+ *                 logo: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD..."
  *       404:
  *         description: The company was not found
  */

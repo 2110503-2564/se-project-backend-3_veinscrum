@@ -127,9 +127,6 @@
  *             tel:
  *               type: string
  *               description: Company telephone
- *             logo:
- *               type: string
- *               description: Company logo URL
  *             owner:
  *               type: string
  *               description: Owner user ID
@@ -139,9 +136,6 @@
  *         description:
  *           type: string
  *           description: Job description
- *         image:
- *           type: string
- *           description: Job image URL
  *         createdAt:
  *           type: string
  *           format: date
@@ -159,7 +153,6 @@
  *         }
  *         jobTitle: "Software Engineer"
  *         description: "Build great software"
- *         image: "https://example.com/job.jpg"
  *         createdAt: "2025-04-12"
  *
  *     InterviewSession:
@@ -186,9 +179,6 @@
  *             description:
  *               type: string
  *               description: Job description
- *             image:
- *               type: string
- *               description: Job image URL
  *             createdAt:
  *               type: string
  *               format: date
@@ -215,9 +205,6 @@
  *                 tel:
  *                   type: string
  *                   description: Company telephone
- *                 logo:
- *                   type: string
- *                   description: Company logo URL
  *                 owner:
  *                   type: string
  *                   description: Owner user ID
@@ -251,7 +238,6 @@
  *           _id: "8056da561123452d88d367be",
  *           jobTitle: "Software Engineer",
  *           description: "Build great software",
- *           image: "https://example.com/job.jpg",
  *           createdAt: "2025-04-12",
  *           company: {
  *             _id: "9056da561123452d88d367bc",
