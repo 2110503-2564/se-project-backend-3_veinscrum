@@ -9,6 +9,7 @@ const JobListingSchema = new mongoose.Schema<JobListing>({
     },
     image: {
         type: String,
+        select: false,
     },
     jobTitle: {
         type: String,

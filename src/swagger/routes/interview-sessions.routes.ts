@@ -311,3 +311,40 @@
  *       404:
  *         description: Job listing not found
  */
+/**
+ * @swagger
+ * /companies/{id}/sessions:
+ *   get:
+ *     summary: Get all interview sessions for a specific company (Admin & company owner only)
+ *     tags: [Interview Sessions, Companies]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The company id
+ *     responses:
+ *       200:
+ *         description: List of interview sessions for this company across all its job listings
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/InterviewSession'
+ *       401:
+ *         description: Unauthorized - Not authenticated
+ *       403:
+ *         description: Forbidden - Not authorized to view these sessions
+ *       404:
+ *         description: Company not found
+ */

@@ -17,7 +17,9 @@ export const getJobListing = async (
     try {
         const jobListing = await JobListingModel.findById(
             req.params.id,
-        ).populate({
+        )
+        .select("+image")
+        .populate({
             path: "company",
         });
 

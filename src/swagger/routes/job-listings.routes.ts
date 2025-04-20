@@ -94,7 +94,7 @@
  *         description: The job listing id
  *     responses:
  *       200:
- *         description: The job listing with populated company information
+ *         description: The job listing with populated company information and image field included (as base64 string)
  *         content:
  *           application/json:
  *             schema:
@@ -104,10 +104,34 @@
  *                   type: boolean
  *                   example: true
  *                 data:
- *                   $ref: '#/components/schemas/JobListing'
+ *                   allOf:
+ *                     - $ref: '#/components/schemas/JobListing'
+ *                     - type: object
+ *                       properties:
+ *                         image:
+ *                           type: string
+ *                           format: byte
+ *                           description: Base64 encoded image data
+ *             example:
+ *               success: true
+ *               data:
+ *                 id: "6056da561452242d88d36e37"
+ *                 company:
+ *                   _id: "8056da561123452d88d367be"
+ *                   name: "Tech Company"
+ *                   address: "123 Main St"
+ *                   website: "https://example.com"
+ *                   description: "A technology company"
+ *                   tel: "0123456789"
+ *                   owner: "7056da561123452d88d367bc"
+ *                 jobTitle: "Software Engineer"
+ *                 description: "Build great software"
+ *                 createdAt: "2025-04-12"
+ *                 image: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD..."
  *       404:
  *         description: The job listing was not found
  */
+
 /**
  * @swagger
  * /companies/{id}/job-listings:
@@ -176,10 +200,6 @@
  *                 type: string
  *                 description: Job description
  *                 example: "We are looking for a skilled software developer"
- *               image:
- *                 type: string
- *                 description: URL of the job image
- *                 example: "https://example.com/job.jpg"
  *     responses:
  *       201:
  *         description: The job listing was successfully created with populated company data
@@ -230,10 +250,6 @@
  *                 type: string
  *                 description: Job description
  *                 example: "Updated job description with more details"
- *               image:
- *                 type: string
- *                 description: URL of the job image
- *                 example: "https://example.com/updated-job.jpg"
  *     responses:
  *       200:
  *         description: The job listing was updated with populated company data

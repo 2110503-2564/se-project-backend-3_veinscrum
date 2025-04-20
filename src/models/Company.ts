@@ -36,6 +36,7 @@ const CompanySchema = new mongoose.Schema<Company>(
         },
         logo: {
             type: String,
+            select: false,
         },
         owner: {
             type: mongoose.Schema.Types.ObjectId,

@@ -1,3 +1,4 @@
+import { CompanyModel } from "@/models/Company";
 import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
 import { UserModel } from "@/models/User";
@@ -446,9 +447,71 @@ export async function getInterviewSessionsByJobListing(
             return;
         }
 
-        // Get all sessions for this job listing without pagination
         const interviewSessions = await InterviewSessionModel.find({
             jobListing: jobListing._id,
+        }).populate([
+            {
+                path: "user",
+                select: "name email",
+            },
+            {
+                path: "jobListing",
+                populate: {
+                    path: "company",
+                    model: "Company",
+                },
+            },
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: interviewSessions,
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+/// @desc     Get interview session by company
+/// @route    GET /api/v1/companies/:id/sessions
+/// @access   Protect
+export async function getInterviewSessionsByCompany(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) {
+    try {
+        const request = req as RequestWithAuth;
+        const { id: userId, role: userRole } = request.user;
+
+        const company = await CompanyModel.findById(req.params.id);
+
+        if (!company) {
+            res.status(404).json({
+                success: false,
+                error: "Company not found",
+            });
+
+            return;
+        }
+
+        if (userRole !== "admin" && String(userId) !== String(company.owner)) {
+            res.status(403).json({
+                success: false,
+                error: "You are not authorized to view interview sessions for this company",
+            });
+
+            return;
+        }
+
+        const jobListingIds = await JobListingModel.find({
+            company: company._id,
+        })
+            .select("_id")
+            .then((jobs: JobListing[]) => jobs.map((job) => job._id));
+
+        const interviewSessions = await InterviewSessionModel.find({
+            jobListing: { $in: jobListingIds },
         }).populate([
             {
                 path: "user",
