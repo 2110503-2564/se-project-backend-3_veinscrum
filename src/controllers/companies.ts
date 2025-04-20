@@ -93,12 +93,33 @@ export async function createCompany(
         const request = req as POSTCompanyRequest;
         const { id: userId } = request.user;
 
+        const user = await UserModel.findById(userId);
+
+        if (!user) {
+            res.status(404).json({
+                success: false,
+                error: "User not found",
+            });
+
+            return;
+        }
+
+        if (user.company !== null) {
+            res.status(400).json({
+                success: false,
+                error: "A company user is already linked to an existing company. Please edit or remove the existing company before creating a new one.",
+            });
+
+            return;
+        }
+
         const requestBodyWithCompany = {
             ...request.body,
-            owner: userId,
+            owner: user._id,
         };
 
         const company = await CompanyModel.create(requestBodyWithCompany);
+
         await UserModel.findByIdAndUpdate(userId, {
             company: company._id,
         });
