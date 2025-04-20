@@ -52,7 +52,7 @@ function applySortingOrder<T extends Document>(
     query: Query<T[], T>,
     sort: string,
 ): Query<T[], T> {
-    const sortFields: string[] = sort.split(",");
+    const sortFields: string[] = sort.split(",").filter(field => field.trim() !== "");
     const sortBy: { [key: string]: 1 | -1 } = { _id: -1 };
 
     sortFields.forEach((field: string) => {
