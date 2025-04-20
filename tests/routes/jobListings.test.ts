@@ -100,7 +100,7 @@ describe("Job Listings Routes", () => {
     });
 
     describe("GET /api/v1/job-listings", () => {
-        it("should fetch all job listings", async () => {
+        it("should fetch all job listings with pagination", async () => {
             // Create admin user
             const admin = await UserModel.create({
                 name: "Admin User",
@@ -134,6 +134,24 @@ describe("Job Listings Routes", () => {
                     description: "Build APIs",
                     image: "https://example.com/backend.jpg",
                 },
+                {
+                    company: company._id,
+                    jobTitle: "DevOps Engineer",
+                    description: "Manage infrastructure",
+                    image: "https://example.com/devops.jpg",
+                },
+                {
+                    company: company._id,
+                    jobTitle: "QA Engineer",
+                    description: "Test software",
+                    image: "https://example.com/qa.jpg",
+                },
+                {
+                    company: company._id,
+                    jobTitle: "Product Manager",
+                    description: "Manage products",
+                    image: "https://example.com/pm.jpg",
+                },
             ]);
 
             // Mock JWT verification to return the owner's ID
@@ -142,20 +160,56 @@ describe("Job Listings Routes", () => {
                 role: "admin",
             });
 
+            // Test with default pagination (page 1, limit 25)
             const response = await request(app)
                 .get("/api/v1/job-listings")
                 .set("Authorization", "Bearer fake-jwt-token");
 
             expect(response.status).toBe(200);
             expect(response.body).toHaveProperty("success", true);
+            expect(response.body).toHaveProperty("count", 5);
             expect(response.body).toHaveProperty("data");
-            expect(response.body.data).toHaveLength(2);
+            expect(response.body.data).toHaveLength(5);
+            expect(response.body).not.toHaveProperty("pagination.next");
+            expect(response.body).not.toHaveProperty("pagination.prev");
 
-            const titles = response.body.data.map(
-                (job: JobListing) => job.jobTitle,
+            // Test with custom pagination (page 1, limit 2)
+            const responseWithLimit = await request(app)
+                .get("/api/v1/job-listings?page=1&limit=2")
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(responseWithLimit.status).toBe(200);
+            expect(responseWithLimit.body).toHaveProperty("success", true);
+            expect(responseWithLimit.body).toHaveProperty("count", 2);
+            expect(responseWithLimit.body.data).toHaveLength(2);
+            expect(responseWithLimit.body).toHaveProperty("pagination.next");
+            expect(responseWithLimit.body).not.toHaveProperty(
+                "pagination.prev",
             );
-            expect(titles).toContain("Frontend Developer");
-            expect(titles).toContain("Backend Developer");
+
+            // Test with custom pagination (page 2, limit 2)
+            const responsePage2 = await request(app)
+                .get("/api/v1/job-listings?page=2&limit=2")
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(responsePage2.status).toBe(200);
+            expect(responsePage2.body).toHaveProperty("success", true);
+            expect(responsePage2.body).toHaveProperty("count", 2);
+            expect(responsePage2.body.data).toHaveLength(2);
+            expect(responsePage2.body).toHaveProperty("pagination.prev");
+            expect(responsePage2.body).toHaveProperty("pagination.next");
+
+            // Test with custom pagination (page 3, limit 2)
+            const responsePage3 = await request(app)
+                .get("/api/v1/job-listings?page=3&limit=2")
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(responsePage3.status).toBe(200);
+            expect(responsePage3.body).toHaveProperty("success", true);
+            expect(responsePage3.body).toHaveProperty("count", 1);
+            expect(responsePage3.body.data).toHaveLength(1);
+            expect(responsePage3.body).toHaveProperty("pagination.prev");
+            expect(responsePage3.body).not.toHaveProperty("pagination.next");
         });
     });
 

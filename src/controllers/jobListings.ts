@@ -2,6 +2,8 @@ import { CompanyModel } from "@/models/Company";
 import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
 import type { RequestWithAuth } from "@/types/Request";
+import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
+import { filterAndPaginate } from "@/utils/filterAndPaginate";
 import type { NextFunction, Request, Response } from "express";
 
 /// @desc     Get job listing by id
@@ -43,11 +45,37 @@ export const getJobListings = async (
     next: NextFunction,
 ) => {
     try {
-        const jobListings = await JobListingModel.find().populate({
+        const request = req as RequestWithAuth;
+        const comparisonQuery = buildComparisonQuery(request.query);
+
+        const baseQuery = JobListingModel.find(comparisonQuery).populate({
             path: "company",
         });
 
-        res.status(200).json({ success: true, data: jobListings });
+        const result = await filterAndPaginate({
+            request,
+            response: res,
+            baseQuery,
+            total: await JobListingModel.countDocuments(comparisonQuery),
+        });
+
+        if (!result) {
+            res.status(400).json({
+                success: false,
+                error: "Invalid pagination parameters: 'page' and 'limit' must be positive integers.",
+            });
+
+            return;
+        }
+
+        const jobListings = await result.query.exec();
+
+        res.status(200).json({
+            success: true,
+            count: jobListings.length,
+            pagination: result.pagination,
+            data: jobListings,
+        });
     } catch (err) {
         next(err);
     }

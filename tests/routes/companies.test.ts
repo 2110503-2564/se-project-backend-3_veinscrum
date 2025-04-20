@@ -288,6 +288,69 @@ describe("Companies Routes", () => {
             });
             expect(companyInDb).toBeNull();
         });
+
+        it("should prevent a user from creating a new company if they already have one", async () => {
+            // Create a user to be the owner
+            const owner = await UserModel.create({
+                name: "Existing Company Owner",
+                email: "existing-owner@test.com",
+                password: "password123",
+                tel: "+1 (555) 444-3333",
+                role: "company",
+            });
+
+            // Create an existing company for this owner
+            const existingCompany = await CompanyModel.create({
+                name: "Existing Company",
+                address: "456 Existing Street, Existing City",
+                website: "https://existingcompany.com",
+                description: "This company already exists",
+                tel: "+1 (555) 999-8888",
+                owner: owner._id,
+            });
+
+            // Update owner with company reference
+            await UserModel.findByIdAndUpdate(owner._id, {
+                company: existingCompany._id,
+            });
+
+            // Mock JWT verification to return the owner's ID
+            (jwt.verify as jest.Mock).mockReturnValue({ id: owner._id });
+
+            // Attempt to create a second company
+            const secondCompanyData = {
+                name: "Second Company",
+                address: "789 Second Ave, Second City",
+                website: "https://secondcompany.com",
+                description: "This company shouldn't be created",
+                tel: "+1 (555) 111-2222",
+            };
+
+            const response = await request(app)
+                .post("/api/v1/companies")
+                .set("Authorization", "Bearer fake-jwt-token")
+                .send(secondCompanyData);
+
+            expect(response.status).toBe(400);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                "A company user is already linked to an existing company. Please edit or remove the existing company before creating a new one.",
+            );
+
+            // Verify the second company was not created
+            const secondCompany = await CompanyModel.findOne({
+                name: "Second Company",
+            });
+            expect(secondCompany).toBeNull();
+
+            // Verify the existing company still exists
+            const companyStillExists = await CompanyModel.findById(
+                existingCompany._id,
+            );
+            expect(companyStillExists).not.toBeNull();
+            expect(companyStillExists?.name).toBe("Existing Company");
+        });
     });
 
     describe("PUT /api/v1/companies/:id", () => {

@@ -15,6 +15,26 @@ export {};
  *     tags: [Job Listings]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 25
+ *         description: Number of items per page (use -1 for all items)
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *         description: Field to sort by (prefix with - for descending order)
  *     responses:
  *       200:
  *         description: The list of all job listings with populated company data
@@ -26,10 +46,37 @@ export {};
  *                 success:
  *                   type: boolean
  *                   example: true
+ *                 count:
+ *                   type: integer
+ *                   description: Number of returned job listings
+ *                   example: 2
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     next:
+ *                       type: object
+ *                       properties:
+ *                         page:
+ *                           type: integer
+ *                           example: 2
+ *                         limit:
+ *                           type: integer
+ *                           example: 25
+ *                     prev:
+ *                       type: object
+ *                       properties:
+ *                         page:
+ *                           type: integer
+ *                           example: 1
+ *                         limit:
+ *                           type: integer
+ *                           example: 25
  *                 data:
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/JobListing'
+ *       400:
+ *         description: Bad request - Invalid pagination parameters
  *       401:
  *         description: Unauthorized - Not authenticated
  *       403:
