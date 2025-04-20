@@ -62,8 +62,14 @@ function validatePaginationParams(
     limitParam: unknown,
     res: Response,
 ): { page: number | null; limit: number | null } {
-    const page = Number.parseInt(pageParam as string, 10) || 1;
-    const limit = Number.parseInt(limitParam as string, 10) || 25;
+    // Parse the values first
+    const parsedPage = Number.parseInt(pageParam as string, 10);
+    const parsedLimit = Number.parseInt(limitParam as string, 10);
+
+    // Apply defaults only if the parsed values are NaN or less than 1
+    const page = Number.isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage;
+    const limit =
+        Number.isNaN(parsedLimit) || parsedLimit < 1 ? 25 : parsedLimit;
 
     if (limit === -1 && page !== 1) {
         res.status(400).json({
@@ -73,18 +79,10 @@ function validatePaginationParams(
         return { page: null, limit: null };
     }
 
-    if (Number.isNaN(page) || page <= 0) {
+    if (Number.isNaN(page) || page <= 0 || Number.isNaN(limit) || limit <= 0) {
         res.status(400).json({
             success: false,
-            error: "Invalid page number",
-        });
-        return { page: null, limit: null };
-    }
-
-    if (Number.isNaN(limit) || limit < -1 || limit === 0) {
-        res.status(400).json({
-            success: false,
-            error: "Invalid limit number",
+            error: "Invalid pagination parameters: 'page' and 'limit' must be positive integers.",
         });
         return { page: null, limit: null };
     }

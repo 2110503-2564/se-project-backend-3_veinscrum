@@ -335,15 +335,19 @@ describe("Companies Routes", () => {
             expect(response.body).toHaveProperty("success", false);
             expect(response.body).toHaveProperty(
                 "error",
-                "A company user is already linked to an existing company. Please edit or remove the existing company before creating a new one."
+                "A company user is already linked to an existing company. Please edit or remove the existing company before creating a new one.",
             );
 
             // Verify the second company was not created
-            const secondCompany = await CompanyModel.findOne({ name: "Second Company" });
+            const secondCompany = await CompanyModel.findOne({
+                name: "Second Company",
+            });
             expect(secondCompany).toBeNull();
-            
+
             // Verify the existing company still exists
-            const companyStillExists = await CompanyModel.findById(existingCompany._id);
+            const companyStillExists = await CompanyModel.findById(
+                existingCompany._id,
+            );
             expect(companyStillExists).not.toBeNull();
             expect(companyStillExists?.name).toBe("Existing Company");
         });
