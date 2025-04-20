@@ -1,12 +1,9 @@
-export {};
-
 /**
  * @swagger
  * tags:
  *   name: User
  *   description: The user managing API
  */
-
 /**
  * @swagger
  * /users:
@@ -44,7 +41,6 @@ export {};
  *       401:
  *         description: Unauthorized
  */
-
 /**
  * @swagger
  * /users/{id}/sessions:

@@ -24,7 +24,12 @@ const swaggerOptions = {
             },
         },
     },
-    apis: ["./src/swagger/definitions/*.ts", "./src/swagger/routes/*.ts"],
+    apis: [
+        "./src/swagger/definitions/*.ts",
+        "./src/swagger/routes/*.ts",
+        "./dist/src/swagger/definitions/*.js",
+        "./dist/src/swagger/routes/*.js",
+    ],
 };
 
 export const swaggerDocs = swaggerJSDoc(swaggerOptions);

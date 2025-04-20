@@ -5,10 +5,10 @@ services:
             dockerfile: Dockerfile
         container_name: veinscrum-be
         restart: unless-stopped
-        env_file:
-            - .env
         ports:
             - "${PORT}:${PORT}"
+        env_file:
+            - .env
         environment:
             - PORT=${PORT}
             - NODE_ENV=${NODE_ENV}

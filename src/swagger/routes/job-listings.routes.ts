@@ -1,12 +1,9 @@
-export {};
-
 /**
  * @swagger
  * tags:
  *   name: Job Listings
  *   description: The job listing managing API
  */
-
 /**
  * @swagger
  * /job-listings:
@@ -82,7 +79,6 @@ export {};
  *       403:
  *         description: Forbidden - Not authorized to access this resource
  */
-
 /**
  * @swagger
  * /job-listings/{id}:
@@ -112,7 +108,6 @@ export {};
  *       404:
  *         description: The job listing was not found
  */
-
 /**
  * @swagger
  * /companies/{id}/job-listings:
@@ -150,7 +145,6 @@ export {};
  *       404:
  *         description: Company not found or no job listings found for this company
  */
-
 /**
  * @swagger
  * /job-listings:
@@ -206,7 +200,6 @@ export {};
  *       403:
  *         description: Forbidden - Not authorized to create job listings
  */
-
 /**
  * @swagger
  * /job-listings/{id}:
@@ -261,7 +254,6 @@ export {};
  *       404:
  *         description: The job listing was not found
  */
-
 /**
  * @swagger
  * /job-listings/{id}:
@@ -298,7 +290,6 @@ export {};
  *       404:
  *         description: The job listing was not found
  */
-
 /**
  * @swagger
  * /job-listings/{id}/sessions:

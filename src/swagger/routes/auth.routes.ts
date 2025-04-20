@@ -1,12 +1,9 @@
-export {};
-
 /**
  * @swagger
  * tags:
  *   name: Auth
  *   description: The authentication managing API
  */
-
 /**
  * @swagger
  * /auth/register:
@@ -60,7 +57,6 @@ export {};
  *       400:
  *         description: Invalid input data or email already in use
  */
-
 /**
  * @swagger
  * /auth/login:
@@ -99,7 +95,6 @@ export {};
  *       401:
  *         description: Invalid credentials
  */
-
 /**
  * @swagger
  * /auth/me:
@@ -135,7 +130,6 @@ export {};
  *       401:
  *         description: Unauthorized
  */
-
 /**
  * @swagger
  * /auth/logout:

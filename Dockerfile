@@ -36,9 +36,6 @@ RUN pnpm install --frozen-lockfile
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
 
-# Copy environment files
-COPY .env.example .env
-
 # Expose the port from environment variable (default to 5050)
 EXPOSE 5050
 

@@ -1,12 +1,9 @@
-export {};
-
 /**
  * @swagger
  * tags:
  *   name: Interview Sessions
  *   description: The session managing API
  */
-
 /**
  * @swagger
  * /sessions:
@@ -154,7 +151,6 @@ export {};
  *       404:
  *         description: Job listing not found
  */
-
 /**
  * @swagger
  * /sessions/{id}:
@@ -204,7 +200,6 @@ export {};
  *       404:
  *         description: The session was not found or associated job listing no longer exists
  */
-
 /**
  * @swagger
  * /sessions/{id}:
@@ -242,7 +237,6 @@ export {};
  *       404:
  *         description: The session was not found
  */
-
 /**
  * @swagger
  * /users/{id}/sessions:
@@ -280,7 +274,6 @@ export {};
  *       404:
  *         description: User not found
  */
-
 /**
  * @swagger
  * /job-listings/{id}/sessions:

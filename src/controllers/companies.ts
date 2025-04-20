@@ -20,8 +20,12 @@ export const getCompanies = async (
         const request = req as RequestWithAuth;
 
         const comparisonQuery = buildComparisonQuery(request.query);
-        const baseQuery =
-            CompanyModel.find(comparisonQuery).populate("jobListings");
+        const baseQuery = CompanyModel.find(comparisonQuery)
+            .select("-logo")
+            .populate({
+                path: "jobListings",
+                select: "-image",
+            });
         const total = await CompanyModel.countDocuments();
 
         const result = await filterAndPaginate({
@@ -62,9 +66,10 @@ export const getCompany = async (
     next: NextFunction,
 ) => {
     try {
-        const company = await CompanyModel.findById(req.params.id).populate(
-            "jobListings",
-        );
+        const company = await CompanyModel.findById(req.params.id).populate({
+            path: "jobListings",
+            select: "-image",
+        });
 
         if (!company) {
             res.status(404).json({
