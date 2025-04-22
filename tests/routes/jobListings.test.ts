@@ -600,6 +600,69 @@ describe("Job Listings Routes", () => {
             const unchangedJob = await JobListingModel.findById(jobListing._id);
             expect(unchangedJob?.jobTitle).toBe("Software Engineer");
         });
+
+        it("should return 404 when job not found", async () => {
+            // Create owner and company
+            const owner = await UserModel.create({
+                name: "Job Owner",
+                email: "jobowner@test.com",
+                password: "password123",
+                tel: "1234567890",
+                role: "company",
+            });
+
+            const company = await CompanyModel.create({
+                name: "Job Company",
+                address: "123 Job St",
+                website: "https://jobcompany.com",
+                description: "Job company description",
+                tel: "9876543210",
+                owner: owner._id,
+            });
+
+            // Create job listing
+            const jobListing = await JobListingModel.create({
+                company: company._id,
+                jobTitle: "Admin Update Test",
+                description: "Will be updated by admin",
+                image: "https://example.com/admin.jpg",
+            });
+
+            // delete job listing
+            await JobListingModel.findByIdAndDelete(jobListing._id);
+
+            // Create admin user
+            const admin = await UserModel.create({
+                name: "Admin User",
+                email: "admin@test.com",
+                password: "password123",
+                tel: "5555555555",
+                role: "admin",
+            });
+
+            // Mock JWT verification to return the admin's ID with admin role
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: admin._id,
+                role: "admin",
+            });
+
+            const updateData = {
+                jobTitle: "Admin Updated Title",
+                description: "Admin updated description",
+            };
+
+            const response = await request(app)
+                .put(`/api/v1/job-listings/${jobListing._id}`)
+                .set("Authorization", "Bearer fake-jwt-token")
+                .send(updateData);
+
+            expect(response.status).toBe(404);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                "Job listing not found",
+            );
+        });
     });
 
     describe("DELETE /api/v1/job-listings/:id", () => {
