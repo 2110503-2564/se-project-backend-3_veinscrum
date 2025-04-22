@@ -7,7 +7,6 @@ import { JobListing } from "@/types/models/JobListing";
 import { SocketWithAuth } from "@/types/socket/SocketWithAuth";
 import { ValidatedChatSocket } from "@/types/socket/ValidatedChatSocket";
 import { convertToSocketHandShakeQuery } from "@/utils/convertToSocketHandshakeQuery";
-import assert from "assert";
 import mongoose from "mongoose";
 import { ExtendedError } from "socket.io";
 
@@ -68,8 +67,6 @@ export const socketChatValidatePermission = async (
                 },
             );
             interviewSession.chat = chat._id;
-
-            assert(interviewSession !== null);
         }
 
         (socket as ValidatedChatSocket).data.interviewSession =
