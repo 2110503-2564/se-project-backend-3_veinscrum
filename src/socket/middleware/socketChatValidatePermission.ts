@@ -77,8 +77,9 @@ export const socketChatValidatePermission = async (
 
         next();
     } catch (error) {
+        console.error("An error occurred during socketChatValidatePermission:", error);
         socket.emit(ChatSocketEvent.ChatError, {
-            error: `Something went wrong: ${error}`,
+            error: "An unexpected error occurred.",
         });
 
         socket.disconnect();
