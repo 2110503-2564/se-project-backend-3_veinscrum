@@ -55,7 +55,7 @@ export const socketConnection = async (socket: ValidatedChatSocket) => {
         console.error("Socket connection error:", error);
 
         socket.emit(ChatSocketEvent.ChatError, {
-            error: `Something went wrong: ${error}`,
+            error: "An unexpected error occurred. Please try again later.",
         });
 
         socket.disconnect();
