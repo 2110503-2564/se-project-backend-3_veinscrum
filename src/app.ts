@@ -12,6 +12,7 @@ import { companiesRouter } from "@/routes/companies";
 import { interviewSessionsRouter } from "@/routes/interviewSessions";
 import { jobListingsRouter } from "@/routes/jobListings";
 import { usersRouter } from "@/routes/users";
+import { chatsRouter } from "./routes/chats";
 
 import swaggerUI from "swagger-ui-express";
 import { swaggerDocs } from "./swagger";
@@ -41,6 +42,7 @@ export function initializeApp() {
     app.use("/api/v1/companies", companiesRouter);
     app.use("/api/v1/sessions", interviewSessionsRouter);
     app.use("/api/v1/users", usersRouter);
+    app.use("/api/v1/chats", chatsRouter);
     app.use("/api/v1/job-listings", jobListingsRouter);
 
     // Global error handler
