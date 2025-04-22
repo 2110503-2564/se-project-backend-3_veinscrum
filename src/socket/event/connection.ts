@@ -37,7 +37,7 @@ export const socketConnection = async (socket: ValidatedChatSocket) => {
                 _id,
                 sender: socket.data.user,
                 content: msg,
-                createdAt: new Date(),
+                timestamp: new Date(),
             };
 
             await ChatModel.findByIdAndUpdate(interviewSession.chat, {
