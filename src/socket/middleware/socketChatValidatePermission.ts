@@ -49,7 +49,7 @@ export const socketChatValidatePermission = async (
                 String(interviewSession.jobListing.company.owner)
         ) {
             socket.emit(ChatSocketEvent.ChatError, {
-                error: "You do not have permission to perform interaction in this chat",
+                error: "You do not have permission to interact with this chat",
             });
             socket.disconnect();
             return;
