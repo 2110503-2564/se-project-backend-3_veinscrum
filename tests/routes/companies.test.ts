@@ -3,7 +3,7 @@ import { CompanyModel } from "@/models/Company";
 import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
 import { UserModel } from "@/models/User";
-import type { Company } from "@/types/Company";
+import type { Company } from "@/types/models/Company";
 import type { Express } from "express";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
