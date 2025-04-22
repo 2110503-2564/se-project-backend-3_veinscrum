@@ -4,10 +4,12 @@ import { socketConnection } from "./event/connection";
 import { socketAuth } from "./middleware/socketAuth";
 import { socketChatValidatePermission } from "./middleware/socketChatValidatePermission";
 
+export let io: SocketIoServer;
+
 export function initializeSocket(
     httpServer: HttpServer<typeof IncomingMessage, typeof ServerResponse>,
 ): SocketIoServer {
-    const io = new SocketIoServer(httpServer, {
+    io = new SocketIoServer(httpServer, {
         cors: {
             origin: process.env.CORS_ORIGIN,
             methods: ["GET", "POST"],

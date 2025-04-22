@@ -1,6 +1,6 @@
 import { ChatSocketEvent } from "@/constants/ChatSocketEvent";
 import { ChatModel } from "@/models/Chat";
-import { io } from "@/server";
+import { io } from "@/socket/socket";
 import { PUTChatRequest } from "@/types/api/v1/chats/PUT";
 import { RequestWithAuth } from "@/types/Request";
 import { NextFunction, Request, Response } from "express";

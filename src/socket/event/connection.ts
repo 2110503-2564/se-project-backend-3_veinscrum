@@ -1,6 +1,6 @@
 import { ChatSocketEvent } from "@/constants/ChatSocketEvent";
 import { ChatModel } from "@/models/Chat";
-import { io } from "@/server";
+import { io } from "@/socket/socket";
 import { ValidatedChatSocket } from "@/types/socket/ValidatedChatSocket";
 import mongoose from "mongoose";
 

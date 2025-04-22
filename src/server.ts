@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 5050;
 
 const app = initializeApp();
 const httpServer = createServer(app);
-export const io = initializeSocket(httpServer);
+initializeSocket(httpServer);
 
 httpServer.listen(PORT, () => {
     console.log(
