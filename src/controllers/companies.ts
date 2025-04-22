@@ -3,7 +3,7 @@ import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
 import { UserModel } from "@/models/User";
 import type { POSTCompanyRequest } from "@/types/api/v1/companies/POST";
-import { JobListing } from "@/types/JobListing";
+import { JobListing } from "@/types/models/JobListing";
 import type { RequestWithAuth } from "@/types/Request";
 import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
 import { filterAndPaginate } from "@/utils/filterAndPaginate";
