@@ -1,3 +1,6 @@
+import swaggerUI from "swagger-ui-express";
+import { swaggerDocs } from "./swagger";
+
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
@@ -8,14 +11,12 @@ import hpp from "hpp";
 
 import { errorHandler } from "@/middleware/errorHandler";
 import { authRouter } from "@/routes/auth";
+
+import { chatsRouter } from "@/routes/chats";
 import { companiesRouter } from "@/routes/companies";
 import { interviewSessionsRouter } from "@/routes/interviewSessions";
 import { jobListingsRouter } from "@/routes/jobListings";
 import { usersRouter } from "@/routes/users";
-import { chatsRouter } from "./routes/chats";
-
-import swaggerUI from "swagger-ui-express";
-import { swaggerDocs } from "./swagger";
 
 export function initializeApp() {
     const app = express();

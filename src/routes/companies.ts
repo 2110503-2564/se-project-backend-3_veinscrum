@@ -6,9 +6,7 @@ import {
     updateCompany,
 } from "@/controllers/companies";
 import { getInterviewSessionsByCompany } from "@/controllers/interviewSessions";
-
 import { getJobListingsByCompany } from "@/controllers/jobListings";
-
 import { authorize, protect } from "@/middleware/auth";
 import { Router } from "express";
 

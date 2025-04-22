@@ -1,8 +1,8 @@
 import { deleteChatMessage, updateChatMessage } from "@/controllers/chats";
 import { authorize, protect } from "@/middleware/auth";
-import * as express from "express";
+import { Router } from "express";
 
-const router = express.Router();
+const router = Router();
 
 router
     .route("/:interviewSessionId/:messageId")
