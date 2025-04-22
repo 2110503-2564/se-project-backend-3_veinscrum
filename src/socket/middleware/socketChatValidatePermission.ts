@@ -1,15 +1,15 @@
+import { ChatSocketEvent } from "@/constants/ChatSocketEvent";
+import { ChatModel } from "@/models/Chat";
+import { InterviewSessionModel } from "@/models/InterviewSession";
+import { Company } from "@/types/models/Company";
+import { InterviewSession } from "@/types/models/InterviewSession";
+import { JobListing } from "@/types/models/JobListing";
 import { SocketWithAuth } from "@/types/socket/SocketWithAuth";
 import { ValidatedChatSocket } from "@/types/socket/ValidatedChatSocket";
+import { convertToSocketHandShakeQuery } from "@/utils/convertToSocketHandshakeQuery";
 import assert from "assert";
 import mongoose from "mongoose";
 import { ExtendedError } from "socket.io";
-import { ChatSocketEvent } from "../../constants/ChatSocketEvent";
-import { ChatModel } from "../../models/Chat";
-import { InterviewSessionModel } from "../../models/InterviewSession";
-import { Company } from "../../types/models/Company";
-import { InterviewSession } from "../../types/models/InterviewSession";
-import { JobListing } from "../../types/models/JobListing";
-import { convertToSocketHandShakeQuery } from "../../utils/convertToSocketHandshakeQuery";
 
 export const socketChatValidatePermission = async (
     socket: SocketWithAuth,
