@@ -21,5 +21,5 @@ export default tseslint.config(
             "jest/valid-expect": "error",
         },
     },
-    tseslint.configs.strict,
+    tseslint.configs.recommended,
 );

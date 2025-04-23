@@ -1,4 +1,4 @@
-import type { InterviewSession } from "@/types/InterviewSession";
+import type { InterviewSession } from "@/types/models/InterviewSession";
 import * as mongoose from "mongoose";
 
 const InterviewSessionSchema = new mongoose.Schema<InterviewSession>({
@@ -11,6 +11,10 @@ const InterviewSessionSchema = new mongoose.Schema<InterviewSession>({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true,
+    },
+    chat: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Chat",
     },
     date: {
         type: Date,

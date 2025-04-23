@@ -1,13 +1,15 @@
+import { ChatModel } from "@/models/Chat";
 import { CompanyModel } from "@/models/Company";
 import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
 import { UserModel } from "@/models/User";
-import type { Company } from "@/types/Company";
-import type { InterviewSession } from "@/types/InterviewSession";
-import type { JobListing } from "@/types/JobListing";
-import type { RequestWithAuth } from "@/types/Request";
 import type { POSTRegisterInterviewSessionRequest } from "@/types/api/v1/sessions/POST";
 import type { PUTUpdateInterviewSessionRequest } from "@/types/api/v1/sessions/PUT";
+import type { Company } from "@/types/models/Company";
+import type { InterviewSession } from "@/types/models/InterviewSession";
+import type { JobListing } from "@/types/models/JobListing";
+import { User } from "@/types/models/User";
+import type { RequestWithAuth } from "@/types/Request";
 import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
 import { filterAndPaginate } from "@/utils/filterAndPaginate";
 import { isWithinAllowedDateRange } from "@/utils/isWithinAllowedDateRange";
@@ -96,34 +98,35 @@ export async function getInterviewSession(
         const request = req as RequestWithAuth;
         const { id: userId, role: userRole } = request.user;
 
-        const rawInterviewSession = await InterviewSessionModel.findById(
+        const interviewSession = await InterviewSessionModel.findById(
             req.params.id,
-        ).populate([
-            {
-                path: "user",
-                select: "name email role",
-            },
-            {
-                path: "jobListing",
-                populate: {
-                    path: "company",
-                    model: "Company",
+        )
+            .populate([
+                {
+                    path: "user",
+                    select: "name email role",
                 },
-            },
-        ]);
+                {
+                    path: "jobListing",
+                    populate: {
+                        path: "company",
+                        model: "Company",
+                    },
+                },
+            ])
+            .lean<
+                InterviewSession & {
+                    jobListing: JobListing & { company: Company };
+                } & { user: User } & Required<{ _id: mongoose.Types.ObjectId }>
+            >();
 
-        if (!rawInterviewSession) {
+        if (!interviewSession) {
             res.status(404).json({
                 success: false,
                 error: `No interview session found with id ${req.params.id}`,
             });
             return;
         }
-
-        const interviewSession =
-            rawInterviewSession as unknown as InterviewSession & {
-                jobListing: JobListing & { company: Company };
-            } & Required<{ _id: mongoose.Types.ObjectId }>;
 
         if (!interviewSession.jobListing) {
             res.status(404).json({
@@ -229,17 +232,23 @@ export const updateInterviewSession = async (
         const request = req as PUTUpdateInterviewSessionRequest;
         const { id: userId, role: userRole } = request.user;
 
-        const rawInterviewSession = await InterviewSessionModel.findById(
+        const interviewSession = await InterviewSessionModel.findById(
             request.params.id,
-        ).populate({
-            path: "jobListing",
-            populate: {
-                path: "company",
-                model: "Company",
-            },
-        });
+        )
+            .populate({
+                path: "jobListing",
+                populate: {
+                    path: "company",
+                    model: "Company",
+                },
+            })
+            .lean<
+                InterviewSession & {
+                    jobListing: JobListing & { company: Company };
+                } & { user: User } & Required<{ _id: mongoose.Types.ObjectId }>
+            >();
 
-        if (!rawInterviewSession) {
+        if (!interviewSession) {
             res.status(404).json({
                 success: false,
                 error: "Interview session not found",
@@ -247,11 +256,6 @@ export const updateInterviewSession = async (
 
             return;
         }
-
-        const interviewSession =
-            rawInterviewSession as unknown as InterviewSession & {
-                jobListing: JobListing & { company: Company };
-            } & Required<{ _id: mongoose.Types.ObjectId }>;
 
         if (!interviewSession.jobListing) {
             res.status(404).json({
@@ -344,7 +348,8 @@ export async function deleteInterviewSession(
             return;
         }
 
-        await InterviewSessionModel.deleteOne({ _id: request.params.id });
+        await ChatModel.deleteOne({ interviewSession: request.params.id });
+        await InterviewSessionModel.findByIdAndDelete(request.params.id);
 
         res.status(200).json({ success: true, data: {} });
     } catch (err) {

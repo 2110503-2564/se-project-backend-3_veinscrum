@@ -1,4 +1,4 @@
-import type { Company } from "@/types/Company";
+import type { Company } from "@/types/models/Company";
 import * as mongoose from "mongoose";
 import "./JobListing";
 

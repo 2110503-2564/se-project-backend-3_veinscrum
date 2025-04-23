@@ -1,8 +1,8 @@
 import { UserModel } from "@/models/User";
 import type { POSTUserLoginRequest } from "@/types/api/v1/auth/login/POST";
 import type { POSTUserRegisterRequest } from "@/types/api/v1/auth/register/POST";
+import type { User } from "@/types/models/User";
 import type { RequestWithAuth } from "@/types/Request";
-import type { User } from "@/types/User";
 import type { NextFunction, Request, Response } from "express";
 
 const sendTokenResponse = (user: User, statusCode: number, res: Response) => {

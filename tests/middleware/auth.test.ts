@@ -1,7 +1,7 @@
 import { authorize, protect } from "@/middleware/auth";
 import { UserModel } from "@/models/User";
 import type { RequestWithAuth } from "@/types/Request";
-import type { User } from "@/types/User";
+import type { User } from "@/types/models/User";
 import type { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";

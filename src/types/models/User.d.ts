@@ -2,7 +2,7 @@ import type mongoose from "mongoose";
 import type { Document } from "mongoose";
 
 interface User extends Document<mongoose.Types.ObjectId> {
-    id: mongoose.Types.ObjectId;
+    _id: mongoose.Types.ObjectId;
     name: string;
     email: string;
     tel: string;
