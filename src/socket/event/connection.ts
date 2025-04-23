@@ -28,24 +28,31 @@ export const socketConnection = async (socket: ValidatedChatSocket) => {
         socket.emit(ChatSocketEvent.ChatHistory, chat.messages);
 
         socket.on(ChatSocketEvent.ChatMessage, async (msg: string) => {
-            if (!msg || !msg.trim()) return;
-            console.log(`💬 Message [${socket.data.user.name}]: ${msg}`);
+            try {
+                if (!msg || !msg.trim()) return;
+                console.log(`💬 Message [${socket.data.user.name}]: ${msg}`);
 
-            const _id = new mongoose.Types.ObjectId();
+                const _id = new mongoose.Types.ObjectId();
 
-            const newMessage = {
-                _id,
-                sender: socket.data.user,
-                content: msg,
-                timestamp: new Date(),
-            };
+                const newMessage = {
+                    _id,
+                    sender: socket.data.user,
+                    content: msg,
+                    timestamp: new Date(),
+                };
 
-            await ChatModel.findByIdAndUpdate(interviewSession.chat, {
-                $push: { messages: newMessage },
-            });
+                await ChatModel.findByIdAndUpdate(interviewSession.chat, {
+                    $push: { messages: newMessage },
+                });
 
-            io.to(roomId).emit(ChatSocketEvent.ChatMessage, newMessage);
-            console.log(ChatSocketEvent.ChatMessage, newMessage);
+                io.to(roomId).emit(ChatSocketEvent.ChatMessage, newMessage);
+                console.log(ChatSocketEvent.ChatMessage, newMessage);
+            } catch (error) {
+                console.error("Error handling ChatMessage event:", error);
+                socket.emit(ChatSocketEvent.ChatError, {
+                    error: "Failed to process the message. Please try again.",
+                });
+            }
         });
 
         socket.on("disconnect", () => {
