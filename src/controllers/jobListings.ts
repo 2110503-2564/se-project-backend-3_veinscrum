@@ -1,6 +1,8 @@
+import { ChatModel } from "@/models/Chat";
 import { CompanyModel } from "@/models/Company";
 import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
+import { InterviewSession } from "@/types/models/InterviewSession";
 import type { RequestWithAuth } from "@/types/Request";
 import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
 import { filterAndPaginate } from "@/utils/filterAndPaginate";
@@ -245,8 +247,22 @@ export async function deleteJobListing(
             return;
         }
 
+        const interviewSessionIds = await InterviewSessionModel.find({
+            jobListing: req.params.id,
+        })
+            .select("_id")
+            .then((jobs: InterviewSession[]) =>
+                jobs.map((interviewSession) => interviewSession._id),
+            );
+
+        if (interviewSessionIds.length > 0) {
+            await ChatModel.deleteMany({
+                interviewSession: { $in: interviewSessionIds },
+            });
+        }
+
         await InterviewSessionModel.deleteMany({ jobListing: req.params.id });
-        await JobListingModel.deleteOne({ _id: req.params.id });
+        await JobListingModel.findByIdAndDelete(req.params.id);
 
         res.status(200).json({ success: true, data: {} });
     } catch (err) {

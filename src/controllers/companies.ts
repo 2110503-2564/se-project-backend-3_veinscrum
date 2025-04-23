@@ -1,8 +1,10 @@
+import { ChatModel } from "@/models/Chat";
 import { CompanyModel } from "@/models/Company";
 import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
 import { UserModel } from "@/models/User";
 import type { POSTCompanyRequest } from "@/types/api/v1/companies/POST";
+import { InterviewSession } from "@/types/models/InterviewSession";
 import { JobListing } from "@/types/models/JobListing";
 import type { RequestWithAuth } from "@/types/Request";
 import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
@@ -227,6 +229,22 @@ export async function deleteCompany(
         })
             .select("_id")
             .then((jobs: JobListing[]) => jobs.map((job) => job._id));
+
+        const interviewSessionIds = await InterviewSessionModel.find({
+            jobListing: { $in: jobListingIds },
+        })
+            .select("_id")
+            .then((interviewSessions: InterviewSession[]) =>
+                interviewSessions.map(
+                    (interviewSession) => interviewSession._id,
+                ),
+            );
+
+        if (interviewSessionIds.length > 0) {
+            await ChatModel.deleteMany({
+                interviewSession: { $in: interviewSessionIds },
+            });
+        }
 
         if (jobListingIds.length > 0) {
             await InterviewSessionModel.deleteMany({
