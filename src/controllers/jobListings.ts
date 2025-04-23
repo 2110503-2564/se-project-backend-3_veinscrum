@@ -7,6 +7,7 @@ import type { RequestWithAuth } from "@/types/Request";
 import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
 import { filterAndPaginate } from "@/utils/filterAndPaginate";
 import type { NextFunction, Request, Response } from "express";
+import assert from "node:assert";
 
 /// @desc     Get job listing by id
 /// @route    GET /api/v1/job-listings/:id
@@ -60,7 +61,7 @@ export const getJobListings = async (
             baseQuery,
             total: await JobListingModel.countDocuments(comparisonQuery),
         });
-
+        /*
         if (!result) {
             res.status(400).json({
                 success: false,
@@ -69,7 +70,8 @@ export const getJobListings = async (
 
             return;
         }
-
+*/
+        assert(result);
         const jobListings = await result.query.exec();
 
         res.status(200).json({

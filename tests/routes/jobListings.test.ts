@@ -97,6 +97,24 @@ describe("Job Listings Routes", () => {
                 "Job listing not found",
             );
         });
+
+        it("should return 500 (mock catch condition)", async () => {
+            jest.spyOn(JobListingModel, "findById").mockImplementation(() => {
+                throw new Error("Mock unexpected error");
+            });
+
+            const nonExistingId = new mongoose.Types.ObjectId();
+            const response = await request(app).get(
+                `/api/v1/job-listings/${nonExistingId}`,
+            );
+
+            expect(response.status).toBe(500);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                "Mock unexpected error",
+            );
+        });
     });
 
     describe("GET /api/v1/job-listings", () => {
@@ -211,6 +229,38 @@ describe("Job Listings Routes", () => {
             expect(responsePage3.body).toHaveProperty("pagination.prev");
             expect(responsePage3.body).not.toHaveProperty("pagination.next");
         });
+
+        it("should return 500 (mock catch condition)", async () => {
+            // Create owner and company
+            const admin = await UserModel.create({
+                name: "Admin",
+                email: "admin@test.com",
+                password: "password123",
+                tel: "1234567890",
+                role: "admin",
+            });
+
+            // Mock JWT verification to return the owner's ID with company role
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: admin._id,
+                role: "admin",
+            });
+
+            jest.spyOn(JobListingModel, "find").mockImplementation(() => {
+                throw new Error("Mock unexpected error");
+            });
+
+            const response = await request(app)
+                .get("/api/v1/job-listings")
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(500);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                "Mock unexpected error",
+            );
+        });
     });
 
     describe("GET /api/v1/companies/:id/job-listings", () => {
@@ -289,6 +339,111 @@ describe("Job Listings Routes", () => {
                 ).toBe(String(company1._id));
             }
         });
+
+        it("should return 404 when company not found", async () => {
+            // Create company user
+            const companyUser = await UserModel.create({
+                name: "Company User",
+                email: "company@test.com",
+                password: "password123",
+                tel: "5555555555",
+                role: "company",
+            });
+
+            // Mock JWT verification to return the owner's ID
+            (jwt.verify as jest.Mock).mockReturnValue({ id: companyUser._id });
+
+            const response = await request(app)
+                .get(
+                    `/api/v1/companies/${new mongoose.Types.ObjectId()}/job-listings`,
+                )
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(404);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty("error", "Company not found");
+        });
+
+        it("should return 403 when company requested other company", async () => {
+            // Create company user
+            const companyUser = await UserModel.create({
+                name: "Company User",
+                email: "company@test.com",
+                password: "password123",
+                tel: "5555555555",
+                role: "company",
+            });
+
+            // Create companies
+            const company1 = await CompanyModel.create({
+                name: "Company A",
+                address: "123 A St",
+                website: "https://companya.com",
+                description: "Company A description",
+                tel: "1111111111",
+                owner: companyUser._id,
+            });
+
+            const company2 = await CompanyModel.create({
+                name: "Company B",
+                address: "456 B St",
+                website: "https://companyb.com",
+                description: "Company B description",
+                tel: "2222222222",
+                owner: new mongoose.Types.ObjectId(), // random user
+            });
+
+            // Create job listings for different companies
+            await JobListingModel.create([
+                {
+                    company: company1._id,
+                    jobTitle: "Role at Company A",
+                    description: "Work at A",
+                    image: "https://example.com/a.jpg",
+                },
+            ]);
+            // Mock JWT verification to return the owner's ID
+            (jwt.verify as jest.Mock).mockReturnValue({ id: companyUser._id });
+
+            const response = await request(app)
+                .get(`/api/v1/companies/${company2._id}/job-listings`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(403);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                "You do not have permission to view this company job listings",
+            );
+        });
+
+        it("should return 400 when object id is invalid (catch)", async () => {
+            // Create owner and company
+            const owner = await UserModel.create({
+                name: "Owner",
+                email: "owner@test.com",
+                password: "password123",
+                tel: "1234567890",
+                role: "company",
+            });
+
+            // Mock JWT verification to return the owner's ID with company role
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: owner._id,
+                role: "company",
+            });
+
+            const response = await request(app)
+                .get(`/api/v1/companies/NOT_OBJECT_ID/job-listings`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(400);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                'Mongoose Error: Cast to ObjectId failed for value "NOT_OBJECT_ID" (type string) at path "_id" for model "Company\"',
+            );
+        });
     });
 
     describe("POST /api/v1/job-listings", () => {
@@ -348,6 +503,55 @@ describe("Job Listings Routes", () => {
             );
             expect(jobInDb).not.toBeNull();
             expect(jobInDb?.jobTitle).toBe("New Position");
+        });
+
+        it("should return 500 (mock catch condition)", async () => {
+            // Create owner and company
+            const owner = await UserModel.create({
+                name: "Owner",
+                email: "owner@test.com",
+                password: "password123",
+                tel: "1234567890",
+                role: "company",
+            });
+
+            const company = await CompanyModel.create({
+                name: "Owner's Company",
+                address: "123 Owner St",
+                website: "https://ownerscompany.com",
+                description: "Owner's company description",
+                tel: "9876543210",
+                owner: owner._id,
+            });
+
+            // Mock JWT verification to return the owner's ID with company role
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: owner._id,
+                role: "company",
+            });
+
+            jest.spyOn(JobListingModel, "create").mockImplementation(() => {
+                throw new Error("Mock unexpected error");
+            });
+
+            const jobData = {
+                company: company._id,
+                jobTitle: "New Position",
+                description: "Exciting role",
+                image: "https://example.com/position.jpg",
+            };
+
+            const response = await request(app)
+                .post("/api/v1/job-listings")
+                .set("Authorization", "Bearer fake-jwt-token")
+                .send(jobData);
+
+            expect(response.status).toBe(500);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                "Mock unexpected error",
+            );
         });
     });
 
@@ -663,6 +867,40 @@ describe("Job Listings Routes", () => {
                 "Job listing not found",
             );
         });
+
+        it("should return 400 when object id is invalid (catch)", async () => {
+            // Create owner and company
+            const owner = await UserModel.create({
+                name: "Owner",
+                email: "owner@test.com",
+                password: "password123",
+                tel: "1234567890",
+                role: "company",
+            });
+
+            // Mock JWT verification to return the owner's ID with company role
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: owner._id,
+                role: "company",
+            });
+
+            const updateData = {
+                jobTitle: "Admin Updated Title",
+                description: "Admin updated description",
+            };
+
+            const response = await request(app)
+                .put(`/api/v1/job-listings/NOT_OBJECT_ID`)
+                .set("Authorization", "Bearer fake-jwt-token")
+                .send(updateData);
+
+            expect(response.status).toBe(400);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                'Mongoose Error: Cast to ObjectId failed for value "NOT_OBJECT_ID" (type string) at path "_id" for model "JobListing"',
+            );
+        });
     });
 
     describe("DELETE /api/v1/job-listings/:id", () => {
@@ -737,6 +975,149 @@ describe("Job Listings Routes", () => {
                 jobListing: jobListing._id,
             });
             expect(sessions).toHaveLength(0);
+        });
+
+        it("should return 403 when company delete other company job", async () => {
+            // Create owner and company
+            const owner = await UserModel.create({
+                name: "Owner",
+                email: "owner@test.com",
+                password: "password123",
+                tel: "1234567890",
+                role: "company",
+            });
+
+            const other = await UserModel.create({
+                name: "Other",
+                email: "other@test.com",
+                password: "password123",
+                tel: "1234557890",
+                role: "company",
+            });
+
+            const company = await CompanyModel.create({
+                name: "Test Company",
+                address: "123 Delete St",
+                website: "https://test.com",
+                description: "Delete test description",
+                tel: "9876543210",
+                owner: owner._id,
+            });
+
+            // Create job listing
+            const jobListing = await JobListingModel.create({
+                company: company._id,
+                jobTitle: "Job",
+                description: "This job",
+                image: "https://example.com/delete.jpg",
+            });
+
+            // Create some interview sessions for this job listing
+            const user = await UserModel.create({
+                name: "Interview User",
+                email: "interview@test.com",
+                password: "password123",
+                tel: "6666666666",
+                role: "user",
+            });
+
+            await InterviewSessionModel.create([
+                {
+                    jobListing: jobListing._id,
+                    user: user._id,
+                    date: new Date("2022-05-10T14:00:00Z"),
+                },
+            ]);
+
+            // Mock JWT verification to return the owner's ID with company role
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: other._id,
+                role: "company",
+            });
+
+            const response = await request(app)
+                .delete(`/api/v1/job-listings/${jobListing._id}`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(403);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                "You do not have permission to delete this job listing",
+            );
+        });
+
+        it("should return 404 when job listing not found", async () => {
+            // Create owner and company
+            const owner = await UserModel.create({
+                name: "Owner",
+                email: "owner@test.com",
+                password: "password123",
+                tel: "1234567890",
+                role: "company",
+            });
+
+            // Mock JWT verification to return the owner's ID with company role
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: owner._id,
+                role: "company",
+            });
+
+            const response = await request(app)
+                .delete(`/api/v1/job-listings/${new mongoose.Types.ObjectId()}`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(404);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                "Job listing not found",
+            );
+        });
+
+        it("should return 400 when object id is invalid (catch)", async () => {
+            // Create owner and company
+            const owner = await UserModel.create({
+                name: "Owner",
+                email: "owner@test.com",
+                password: "password123",
+                tel: "1234567890",
+                role: "company",
+            });
+
+            const company = await CompanyModel.create({
+                name: "Test Company",
+                address: "123 Delete St",
+                website: "https://test.com",
+                description: "Delete test description",
+                tel: "9876543210",
+                owner: owner._id,
+            });
+
+            // Create job listing
+            const jobListing = await JobListingModel.create({
+                company: company._id,
+                jobTitle: "Job",
+                description: "This job",
+                image: "https://example.com/delete.jpg",
+            });
+
+            // Mock JWT verification to return the owner's ID with company role
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: owner._id,
+                role: "company",
+            });
+
+            const response = await request(app)
+                .delete(`/api/v1/job-listings/NOT_OBJECT_ID`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(400);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                'Mongoose Error: Cast to ObjectId failed for value "NOT_OBJECT_ID" (type string) at path "_id" for model "JobListing"',
+            );
         });
     });
 
