@@ -15,6 +15,7 @@ import { filterAndPaginate } from "@/utils/filterAndPaginate";
 import { isWithinAllowedDateRange } from "@/utils/isWithinAllowedDateRange";
 import type { NextFunction, Request, Response } from "express";
 import type mongoose from "mongoose";
+import assert from "node:assert";
 
 // @desc    Get all interview sessions
 // @route   GET /api/v1/sessions
@@ -29,33 +30,19 @@ export async function getInterviewSessions(
 
         const comparisonQuery = buildComparisonQuery(request.query);
 
-        if (request.user.role !== "admin") {
-            comparisonQuery.user = String(request.user.id);
-        }
-
-        const baseQuery = InterviewSessionModel.find(comparisonQuery).populate(
-            request.user.role === "admin"
-                ? [
-                      {
-                          path: "user",
-                          select: "name email",
-                      },
-                      {
-                          path: "jobListing",
-                          populate: {
-                              path: "company",
-                              model: "Company",
-                          },
-                      },
-                  ]
-                : {
-                      path: "jobListing",
-                      populate: {
-                          path: "company",
-                          model: "Company",
-                      },
-                  },
-        );
+        const baseQuery = InterviewSessionModel.find(comparisonQuery).populate([
+            {
+                path: "user",
+                select: "name email",
+            },
+            {
+                path: "jobListing",
+                populate: {
+                    path: "company",
+                    model: "Company",
+                },
+            },
+        ]);
 
         const result = await filterAndPaginate({
             request,
@@ -64,14 +51,7 @@ export async function getInterviewSessions(
             total: await InterviewSessionModel.countDocuments(comparisonQuery),
         });
 
-        if (!result) {
-            res.status(400).json({
-                success: false,
-                error: "Invalid pagination parameters: 'page' and 'limit' must be positive integers.",
-            });
-
-            return;
-        }
+        assert(result);
 
         const sessions = await result.query.exec();
 

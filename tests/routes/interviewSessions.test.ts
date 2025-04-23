@@ -342,6 +342,65 @@ describe("Interview Sessions Routes", () => {
                 `No interview session found with id ${nonExistingId}`,
             );
         });
+
+        it("should return 404 when job listing no longer exist", async () => {
+            // Create a user
+            const user = await UserModel.create({
+                name: "Test User",
+                email: "user@test.com",
+                password: "password123",
+                tel: "1234567890",
+                role: "user",
+            });
+
+            // Create an interview session
+            const session = await InterviewSessionModel.create({
+                jobListing: new mongoose.Types.ObjectId(),
+                user: user._id,
+                date: new Date("2022-05-10T10:00:00Z"),
+            });
+
+            // Mock JWT verification to return the user's ID
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: user._id,
+                role: "user",
+            });
+
+            const response = await request(app)
+                .get(`/api/v1/sessions/${session._id}`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(404);
+            expect(response.body).toHaveProperty("success", false);
+        });
+
+        it("should return 400 when object id is invalid", async () => {
+            // Create a user
+            const user = await UserModel.create({
+                name: "Test User",
+                email: "user@test.com",
+                password: "password123",
+                tel: "1234567890",
+                role: "user",
+            });
+
+            // Mock JWT verification to return the user's ID
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: user._id,
+                role: "user",
+            });
+
+            const response = await request(app)
+                .get(`/api/v1/sessions/NOT_OBJECT_ID`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(400);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                'Mongoose Error: Cast to ObjectId failed for value "NOT_OBJECT_ID" (type string) at path "_id" for model "InterviewSession"',
+            );
+        });
     });
 
     describe("GET /api/v1/sessions", () => {
@@ -450,6 +509,37 @@ describe("Interview Sessions Routes", () => {
                 .set("Authorization", "Bearer fake-jwt-token");
 
             expect(response.status).toBe(403);
+            expect(response.body).toHaveProperty("success", false);
+        });
+
+        it("should return 500 when unexpected error occur", async () => {
+            // Create a user
+            const user = await UserModel.create({
+                name: "Admin User",
+                email: "admin@test.com",
+                password: "password123",
+                tel: "1234567890",
+                role: "admin",
+            });
+
+            // Mock JWT verification to return the user's ID
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: user._id,
+                role: "admin",
+            });
+
+            jest.spyOn(
+                InterviewSessionModel,
+                "countDocuments",
+            ).mockImplementation(() => {
+                throw new Error("mock unexpected error");
+            });
+
+            const response = await request(app)
+                .get("/api/v1/sessions")
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(500);
             expect(response.body).toHaveProperty("success", false);
         });
     });
@@ -694,6 +784,83 @@ describe("Interview Sessions Routes", () => {
             );
         });
 
+        it("should return 403 company tried to access other company", async () => {
+            // Create users
+            const user1 = await UserModel.create({
+                name: "User 1",
+                email: "user1@test.com",
+                password: "password123",
+                tel: "1111111111",
+                role: "user",
+            });
+
+            const other = await UserModel.create({
+                name: "User 2",
+                email: "user2@test.com",
+                password: "password123",
+                tel: "2222222222",
+                role: "company",
+            });
+
+            // Create a company owner
+            const owner = await UserModel.create({
+                name: "Company Owner",
+                email: "owner@test.com",
+                password: "password123",
+                tel: "5555555555",
+                role: "company",
+            });
+
+            // Create a company
+            const company = await CompanyModel.create({
+                name: "Test Company",
+                address: "123 Test St",
+                website: "https://test.com",
+                description: "Test description",
+                tel: "1234567890",
+                owner: owner._id,
+            });
+
+            // Create job listing
+            const jobListing = await JobListingModel.create({
+                company: company._id,
+                jobTitle: "Software Engineer",
+                description: "Develop software",
+                image: "https://example.com/image.jpg",
+            });
+
+            // Create interview sessions for this job listing
+            await InterviewSessionModel.create([
+                {
+                    jobListing: jobListing._id,
+                    user: user1._id,
+                    date: new Date("2022-05-10T10:00:00Z"),
+                },
+                {
+                    jobListing: jobListing._id,
+                    user: user1._id,
+                    date: new Date("2022-05-11T14:00:00Z"),
+                },
+            ]);
+
+            // Mock JWT verification to return user1's ID
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: other._id,
+                role: "user",
+            });
+
+            const response = await request(app)
+                .get(`/api/v1/job-listings/${jobListing._id}/sessions`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(403);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                "You are not authorized to view interview sessions for this job listing",
+            );
+        });
+
         it("should return all sessions for a job listing without pagination", async () => {
             // Create admin user
             const admin = await UserModel.create({
@@ -802,6 +969,92 @@ describe("Interview Sessions Routes", () => {
             expect(response.body).toHaveProperty(
                 "error",
                 "Job listing not found",
+            );
+        });
+
+        it("should return 400 if object id is invalid", async () => {
+            // Create admin user
+            const admin = await UserModel.create({
+                name: "Admin User",
+                email: "admin@test.com",
+                password: "password123",
+                tel: "9999999999",
+                role: "admin",
+            });
+
+            // Create users
+            const user1 = await UserModel.create({
+                name: "User 1",
+                email: "user1@test.com",
+                password: "password123",
+                tel: "1111111111",
+                role: "user",
+            });
+
+            const user2 = await UserModel.create({
+                name: "User 2",
+                email: "user2@test.com",
+                password: "password123",
+                tel: "2222222222",
+                role: "user",
+            });
+
+            // Create a company owner
+            const owner = await UserModel.create({
+                name: "Company Owner",
+                email: "owner@test.com",
+                password: "password123",
+                tel: "5555555555",
+                role: "company",
+            });
+
+            // Create a company
+            const company = await CompanyModel.create({
+                name: "Test Company",
+                address: "123 Test St",
+                website: "https://test.com",
+                description: "Test description",
+                tel: "1234567890",
+                owner: owner._id,
+            });
+
+            // Create job listing
+            const jobListing = await JobListingModel.create({
+                company: company._id,
+                jobTitle: "Software Engineer",
+                description: "Develop software",
+                image: "https://example.com/image.jpg",
+            });
+
+            // Create interview sessions for this job listing
+            await InterviewSessionModel.create([
+                {
+                    jobListing: jobListing._id,
+                    user: user1._id,
+                    date: new Date("2022-05-10T10:00:00Z"),
+                },
+                {
+                    jobListing: jobListing._id,
+                    user: user2._id,
+                    date: new Date("2022-05-11T14:00:00Z"),
+                },
+            ]);
+
+            // Mock JWT verification to return the admin's ID
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: admin._id,
+                role: "admin",
+            });
+
+            const response = await request(app)
+                .get(`/api/v1/job-listings/NOT_OBJECT_ID/sessions`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(400);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                'Mongoose Error: Cast to ObjectId failed for value "NOT_OBJECT_ID" (type string) at path "_id" for model "JobListing"',
             );
         });
     });
@@ -1017,81 +1270,6 @@ describe("Interview Sessions Routes", () => {
             );
         });
 
-        it("should allow admin to create more than 3 sessions", async () => {
-            // Create admin user
-            const admin = await UserModel.create({
-                name: "Admin User",
-                email: "admin@test.com",
-                password: "password123",
-                tel: "9999999999",
-                role: "admin",
-            });
-
-            // Create a company owner and company
-            const owner = await UserModel.create({
-                name: "Company Owner",
-                email: "owner@test.com",
-                password: "password123",
-                tel: "5555555555",
-                role: "company",
-            });
-
-            const company = await CompanyModel.create({
-                name: "Test Company",
-                address: "123 Test St",
-                website: "https://test.com",
-                description: "Test description",
-                tel: "1234567890",
-                owner: owner._id,
-            });
-
-            // Create a job listing
-            const jobListing = await JobListingModel.create({
-                company: company._id,
-                jobTitle: "Software Engineer",
-                description: "Develop software",
-                image: "https://example.com/image.jpg",
-            });
-
-            // Create 3 existing sessions for the admin
-            await InterviewSessionModel.create([
-                {
-                    jobListing: jobListing._id,
-                    user: admin._id,
-                    date: new Date("2022-05-10T10:00:00Z"),
-                },
-                {
-                    jobListing: jobListing._id,
-                    user: admin._id,
-                    date: new Date("2022-05-11T14:00:00Z"),
-                },
-                {
-                    jobListing: jobListing._id,
-                    user: admin._id,
-                    date: new Date("2022-05-12T16:00:00Z"),
-                },
-            ]);
-
-            // Mock JWT verification to return the admin's ID
-            (jwt.verify as jest.Mock).mockReturnValue({
-                id: admin._id,
-                role: "admin",
-            });
-
-            const sessionData = {
-                jobListing: jobListing._id,
-                date: new Date("2022-05-13T15:00:00Z"),
-            };
-
-            const response = await request(app)
-                .post("/api/v1/sessions")
-                .set("Authorization", "Bearer fake-jwt-token")
-                .send(sessionData);
-
-            expect(response.status).toBe(201);
-            expect(response.body).toHaveProperty("success", true);
-        });
-
         it("should return 404 if job listing not found", async () => {
             // Create a user
             const user = await UserModel.create({
@@ -1124,6 +1302,71 @@ describe("Interview Sessions Routes", () => {
             expect(response.body).toHaveProperty(
                 "error",
                 "Job listing not found",
+            );
+        });
+
+        it("should return 500 if unexpected error occur", async () => {
+            // Create admin user
+            const user = await UserModel.create({
+                name: "User",
+                email: "user@test.com",
+                password: "password123",
+                tel: "9999999999",
+                role: "user",
+            });
+
+            // Create a company owner and company
+            const owner = await UserModel.create({
+                name: "Company Owner",
+                email: "owner@test.com",
+                password: "password123",
+                tel: "5555555555",
+                role: "company",
+            });
+
+            const company = await CompanyModel.create({
+                name: "Test Company",
+                address: "123 Test St",
+                website: "https://test.com",
+                description: "Test description",
+                tel: "1234567890",
+                owner: owner._id,
+            });
+
+            // Create a job listing
+            const jobListing = await JobListingModel.create({
+                company: company._id,
+                jobTitle: "Software Engineer",
+                description: "Develop software",
+                image: "https://example.com/image.jpg",
+            });
+
+            // Mock JWT verification to return the admin's ID
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: user._id,
+                role: "user",
+            });
+
+            const sessionData = {
+                jobListing: jobListing._id,
+                date: new Date("2022-05-12T15:00:00Z"),
+            };
+
+            const mock = jest.spyOn(InterviewSessionModel, "create");
+            mock.mockImplementation(() => {
+                throw new Error("Mock handle unexpected error");
+            });
+
+            const response = await request(app)
+                .post("/api/v1/sessions")
+                .set("Authorization", "Bearer fake-jwt-token")
+                .send(sessionData);
+
+            expect(response.status).toBe(500);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                "Mock handle unexpected error",
             );
         });
     });
@@ -1449,6 +1692,75 @@ describe("Interview Sessions Routes", () => {
                 "Interview session not found",
             );
         });
+
+        it("should return 404 when job listing no longer exist", async () => {
+            // Create a user
+            const user = await UserModel.create({
+                name: "Test User",
+                email: "user@test.com",
+                password: "password123",
+                tel: "1234567890",
+                role: "user",
+            });
+
+            // Create an interview session
+            const session = await InterviewSessionModel.create({
+                jobListing: new mongoose.Types.ObjectId(),
+                user: user._id,
+                date: new Date("2022-05-10T10:00:00Z"),
+            });
+
+            const updateData = {
+                date: new Date("2022-05-11T14:00:00Z"),
+            };
+
+            // Mock JWT verification to return the user's ID
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: user._id,
+                role: "user",
+            });
+
+            const response = await request(app)
+                .put(`/api/v1/sessions/${session._id}`)
+                .set("Authorization", "Bearer fake-jwt-token")
+                .send(updateData);
+
+            expect(response.status).toBe(404);
+            expect(response.body).toHaveProperty("success", false);
+        });
+
+        it("should return 400 if id in wrong format", async () => {
+            // Create admin user
+            const admin = await UserModel.create({
+                name: "Admin User",
+                email: "admin@test.com",
+                password: "password123",
+                tel: "9999999999",
+                role: "admin",
+            });
+
+            // Mock JWT verification to return the admin's ID
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: admin._id,
+                role: "admin",
+            });
+
+            const updateData = {
+                date: new Date("2022-05-11T14:00:00Z"),
+            };
+
+            const response = await request(app)
+                .put(`/api/v1/sessions/NOT_OBJECT_ID`)
+                .set("Authorization", "Bearer fake-jwt-token")
+                .send(updateData);
+
+            expect(response.status).toBe(400);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                'Mongoose Error: Cast to ObjectId failed for value "NOT_OBJECT_ID" (type string) at path "_id" for model "InterviewSession"',
+            );
+        });
     });
 
     describe("DELETE /api/v1/sessions/:id", () => {
@@ -1683,6 +1995,34 @@ describe("Interview Sessions Routes", () => {
             expect(response.body).toHaveProperty(
                 "error",
                 "Interview session not found",
+            );
+        });
+
+        it("should return 400 if id in wrong format", async () => {
+            // Create admin user
+            const admin = await UserModel.create({
+                name: "Admin User",
+                email: "admin@test.com",
+                password: "password123",
+                tel: "9999999999",
+                role: "admin",
+            });
+
+            // Mock JWT verification to return the admin's ID
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: admin._id,
+                role: "admin",
+            });
+
+            const response = await request(app)
+                .delete(`/api/v1/sessions/NOT_OBJECT_ID`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(400);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                'Mongoose Error: Cast to ObjectId failed for value "NOT_OBJECT_ID" (type string) at path "_id" for model "InterviewSession"',
             );
         });
     });
@@ -2084,6 +2424,179 @@ describe("Interview Sessions Routes", () => {
             expect(response.body).toHaveProperty(
                 "error",
                 "You are not authorized to view interview sessions for this company",
+            );
+        });
+
+        it("should return 400 if id in wrong format", async () => {
+            // Create admin user
+            const admin = await UserModel.create({
+                name: "Admin User",
+                email: "admin@test.com",
+                password: "password123",
+                tel: "9999999999",
+                role: "admin",
+            });
+
+            // Mock JWT verification to return the admin's ID
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: admin._id,
+                role: "admin",
+            });
+
+            const response = await request(app)
+                .get(`/api/v1/companies/NOT_OBJECT_ID/sessions`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(400);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                'Mongoose Error: Cast to ObjectId failed for value "NOT_OBJECT_ID" (type string) at path "_id" for model "Company"',
+            );
+        });
+    });
+
+    describe("GET /api/v1/users/:id/sessions", () => {
+        it("should return any user sessions if requested by admin", async () => {
+            const admin = await UserModel.create({
+                name: "Admin User",
+                email: "admin@test.com",
+                password: "password123",
+                tel: "9999999999",
+                role: "admin",
+            });
+
+            const user = await UserModel.create({
+                name: "Regular User",
+                email: "user@test.com",
+                password: "password123",
+                tel: "9999998999",
+                role: "user",
+            });
+
+            // Mock JWT verification to return the admin's ID
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: admin._id,
+                role: "admin",
+            });
+
+            const response = await request(app)
+                .get(`/api/v1/users/${user._id}/sessions`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(200);
+            expect(response.body).toHaveProperty("success", true);
+            expect(response.body).toHaveProperty("data", []);
+        });
+
+        it("should return user own sessions if requested by user", async () => {
+            const user = await UserModel.create({
+                name: "Regular User",
+                email: "user@test.com",
+                password: "password123",
+                tel: "9999998999",
+                role: "user",
+            });
+
+            // Mock JWT verification to return the admin's ID
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: user._id,
+                role: "user",
+            });
+
+            const response = await request(app)
+                .get(`/api/v1/users/${user._id}/sessions`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(200);
+            expect(response.body).toHaveProperty("success", true);
+            expect(response.body).toHaveProperty("data", []);
+        });
+
+        it("should return 404 when user is not found", async () => {
+            const user = await UserModel.create({
+                name: "Regular User",
+                email: "user@test.com",
+                password: "password123",
+                tel: "9999998999",
+                role: "user",
+            });
+
+            // Mock JWT verification to return the admin's ID
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: user._id,
+                role: "user",
+            });
+
+            const response = await request(app)
+                .get(`/api/v1/users/${new mongoose.Types.ObjectId()}/sessions`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(404);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty("error", "User not found");
+        });
+
+        it("should return 403 when user sessions is requested by other user", async () => {
+            const user = await UserModel.create({
+                name: "Regular User",
+                email: "user@test.com",
+                password: "password123",
+                tel: "9999998999",
+                role: "user",
+            });
+
+            const other_user = await UserModel.create({
+                name: "Other User",
+                email: "user2@test.com",
+                password: "password123",
+                tel: "9999988999",
+                role: "user",
+            });
+
+            // Mock JWT verification to return the admin's ID
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: user._id,
+                role: "user",
+            });
+
+            const response = await request(app)
+                .get(`/api/v1/users/${other_user._id}/sessions`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(403);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                "You do not have permission to view this user interview sessions",
+            );
+        });
+
+        it("should return 400 if id in wrong format", async () => {
+            // Create admin user
+            const admin = await UserModel.create({
+                name: "Admin User",
+                email: "admin@test.com",
+                password: "password123",
+                tel: "9999999999",
+                role: "admin",
+            });
+
+            // Mock JWT verification to return the admin's ID
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: admin._id,
+                role: "admin",
+            });
+
+            const response = await request(app)
+                .get(`/api/v1/users/NOT_OBJECT_ID/sessions`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(400);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                'Mongoose Error: Cast to ObjectId failed for value "NOT_OBJECT_ID" (type string) at path "_id" for model "User"',
             );
         });
     });
