@@ -33,7 +33,7 @@ export async function getInterviewSessions(
         const baseQuery = InterviewSessionModel.find(comparisonQuery).populate([
             {
                 path: "user",
-                select: "name email",
+                select: "name email tel",
             },
             {
                 path: "jobListing",
@@ -84,7 +84,7 @@ export async function getInterviewSession(
             .populate([
                 {
                     path: "user",
-                    select: "name email role",
+                    select: "name email tel role",
                 },
                 {
                     path: "jobListing",
@@ -372,7 +372,7 @@ export async function getInterviewSessionsByUser(
         }).populate([
             {
                 path: "user",
-                select: "name email",
+                select: "name email tel",
             },
             {
                 path: "jobListing",
@@ -437,7 +437,7 @@ export async function getInterviewSessionsByJobListing(
         }).populate([
             {
                 path: "user",
-                select: "name email",
+                select: "name email tel",
             },
             {
                 path: "jobListing",
@@ -500,7 +500,7 @@ export async function getInterviewSessionsByCompany(
         }).populate([
             {
                 path: "user",
-                select: "name email",
+                select: "name email tel",
             },
             {
                 path: "jobListing",
