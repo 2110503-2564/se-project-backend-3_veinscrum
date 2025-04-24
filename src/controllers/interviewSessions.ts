@@ -8,7 +8,7 @@ import type { PUTUpdateInterviewSessionRequest } from "@/types/api/v1/sessions/P
 import type { Company } from "@/types/models/Company";
 import type { InterviewSession } from "@/types/models/InterviewSession";
 import type { JobListing } from "@/types/models/JobListing";
-import { User } from "@/types/models/User";
+import type { User } from "@/types/models/User";
 import type { RequestWithAuth } from "@/types/Request";
 import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
 import { filterAndPaginate } from "@/utils/filterAndPaginate";
