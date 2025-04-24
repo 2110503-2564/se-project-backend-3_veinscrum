@@ -2,7 +2,7 @@ import { ChatModel } from "@/models/Chat";
 import { CompanyModel } from "@/models/Company";
 import { InterviewSessionModel } from "@/models/InterviewSession";
 import { JobListingModel } from "@/models/JobListing";
-import { InterviewSession } from "@/types/models/InterviewSession";
+import type { InterviewSession } from "@/types/models/InterviewSession";
 import type { RequestWithAuth } from "@/types/Request";
 import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
 import { filterAndPaginate } from "@/utils/filterAndPaginate";

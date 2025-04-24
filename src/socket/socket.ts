@@ -1,4 +1,8 @@
-import { Server as HttpServer, IncomingMessage, ServerResponse } from "http";
+import type {
+    Server as HttpServer,
+    IncomingMessage,
+    ServerResponse,
+} from "node:http";
 import { Server as SocketIoServer } from "socket.io";
 import { socketConnection } from "./event/connection";
 import { socketAuth } from "./middleware/socketAuth";
@@ -11,7 +15,7 @@ export function initializeSocket(
 ): SocketIoServer {
     io = new SocketIoServer(httpServer, {
         cors: {
-            origin: process.env.CORS_ORIGIN,
+            origin: process.env.CORS_ORIGIN?.split("|"),
             methods: ["GET", "POST"],
             credentials: true,
         },

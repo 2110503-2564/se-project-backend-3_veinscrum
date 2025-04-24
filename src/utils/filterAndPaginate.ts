@@ -57,13 +57,13 @@ function applySortingOrder<T extends Document>(
         .filter((field) => field.trim() !== "");
     const sortBy: { [key: string]: 1 | -1 } = { _id: -1 };
 
-    sortFields.forEach((field: string) => {
+    for (const field of sortFields) {
         if (field.startsWith("-")) {
             sortBy[field.slice(1)] = -1;
         } else {
             sortBy[field] = 1;
         }
-    });
+    }
 
     return query.sort(sortBy);
 }

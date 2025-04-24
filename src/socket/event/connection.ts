@@ -1,7 +1,7 @@
 import { ChatSocketEvent } from "@/constants/ChatSocketEvent";
 import { ChatModel } from "@/models/Chat";
 import { io } from "@/socket/socket";
-import { ValidatedChatSocket } from "@/types/socket/ValidatedChatSocket";
+import type { ValidatedChatSocket } from "@/types/socket/ValidatedChatSocket";
 import mongoose from "mongoose";
 
 export const socketConnection = async (socket: ValidatedChatSocket) => {

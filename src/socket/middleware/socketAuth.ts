@@ -1,6 +1,6 @@
 import { UserModel } from "@/models/User";
 import jwt, { type JwtPayload } from "jsonwebtoken";
-import { ExtendedError, Socket } from "socket.io";
+import type { ExtendedError, Socket } from "socket.io";
 
 export const socketAuth = async (
     socket: Socket,

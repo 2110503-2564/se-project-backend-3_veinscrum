@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-import { createServer } from "http";
+import { createServer } from "node:http";
 import { initializeApp } from "./app";
 import { connectDB } from "./config/db";
 import { initializeSocket } from "./socket/socket";

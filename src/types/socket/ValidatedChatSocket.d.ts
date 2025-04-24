@@ -1,5 +1,5 @@
-import { InterviewSession } from "../models/InterviewSession";
-import { SocketWithAuth } from "./SocketWithAuth";
+import type { InterviewSession } from "../models/InterviewSession";
+import type { SocketWithAuth } from "./SocketWithAuth";
 
 interface ValidatedChatSocket extends SocketWithAuth {
     data: SocketWithAuth["data"] & {

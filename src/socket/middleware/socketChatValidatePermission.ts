@@ -1,14 +1,14 @@
 import { ChatSocketEvent } from "@/constants/ChatSocketEvent";
 import { ChatModel } from "@/models/Chat";
 import { InterviewSessionModel } from "@/models/InterviewSession";
-import { Company } from "@/types/models/Company";
-import { InterviewSession } from "@/types/models/InterviewSession";
-import { JobListing } from "@/types/models/JobListing";
-import { SocketWithAuth } from "@/types/socket/SocketWithAuth";
-import { ValidatedChatSocket } from "@/types/socket/ValidatedChatSocket";
+import type { Company } from "@/types/models/Company";
+import type { InterviewSession } from "@/types/models/InterviewSession";
+import type { JobListing } from "@/types/models/JobListing";
+import type { SocketWithAuth } from "@/types/socket/SocketWithAuth";
+import type { ValidatedChatSocket } from "@/types/socket/ValidatedChatSocket";
 import { convertToSocketHandShakeQuery } from "@/utils/convertToSocketHandshakeQuery";
-import mongoose from "mongoose";
-import { ExtendedError } from "socket.io";
+import type mongoose from "mongoose";
+import type { ExtendedError } from "socket.io";
 
 export const socketChatValidatePermission = async (
     socket: SocketWithAuth,
@@ -74,7 +74,10 @@ export const socketChatValidatePermission = async (
 
         next();
     } catch (error) {
-        console.error("An error occurred during socketChatValidatePermission:", error);
+        console.error(
+            "An error occurred during socketChatValidatePermission:",
+            error,
+        );
         socket.emit(ChatSocketEvent.ChatError, {
             error: "An unexpected error occurred.",
         });

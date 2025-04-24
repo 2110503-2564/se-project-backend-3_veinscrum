@@ -1,9 +1,9 @@
 import { ChatSocketEvent } from "@/constants/ChatSocketEvent";
 import { ChatModel } from "@/models/Chat";
 import { io } from "@/socket/socket";
-import { PUTChatRequest } from "@/types/api/v1/chats/PUT";
-import { RequestWithAuth } from "@/types/Request";
-import { NextFunction, Request, Response } from "express";
+import type { PUTChatRequest } from "@/types/api/v1/chats/PUT";
+import type { RequestWithAuth } from "@/types/Request";
+import type { NextFunction, Request, Response } from "express";
 
 /// @desc     Update Chat Message (authentication required)
 /// @route    PUT /api/v1/chat/:interviewSessionId
