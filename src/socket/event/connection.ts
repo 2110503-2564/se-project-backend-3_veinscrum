@@ -46,7 +46,6 @@ export const socketConnection = async (socket: ValidatedChatSocket) => {
                 });
 
                 io.to(roomId).emit(ChatSocketEvent.ChatMessage, newMessage);
-                console.log(ChatSocketEvent.ChatMessage, newMessage);
             } catch (error) {
                 console.error("Error handling ChatMessage event:", error);
                 socket.emit(ChatSocketEvent.ChatError, {
