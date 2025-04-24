@@ -20,38 +20,18 @@ export const getFlagsByJobListing = async (
     try {
         const request = req as RequestWithAuth;
         const { id: userId, role: userRole } = request.user;
+        const interviewSession = await FlagModel.findById(
+            req.params.id,
+        ).populate([
+            {
+                path: "user",
+                select: "name email tel",
+            },
+        ]);
 
-        const flagUser = await FlagModel.find({
-            jobListing: req.params.id,
-        })
-            .populate([{ path: "user", select: "name email tel" }])
-            .lean<
-                Flag & {
-                    jobListing: JobListing & { company: Company };
-                } & { user: User } & Required<{ _id: mongoose.Types.ObjectId }>
-            >();
-
-        if (!flagUser) {
-            res.status(404).json({
-                success: false,
-                error: `No job listings found with id ${req.params.id}`,
-            });
-            return;
-        }
-
-        if (
-            userRole !== "admin" &&
-            String(userId) !== String(flagUser.jobListing.company.owner)
-        ) {
-            res.status(403).json({
-                success: false,
-                error: "You do not have permission to view this job listing flag",
-            });
-            return;
-        }
         res.status(200).json({
             success: true,
-            data: flagUser,
+            data: interviewSession,
         });
     } catch (err) {
         next(err);
