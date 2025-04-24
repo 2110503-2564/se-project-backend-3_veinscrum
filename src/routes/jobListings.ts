@@ -1,3 +1,4 @@
+import { getFlagsByJobListing } from "@/controllers/flag";
 import { getInterviewSessionsByJobListing } from "@/controllers/interviewSessions";
 import {
     createJobListing,
@@ -29,5 +30,9 @@ router
         authorize("admin", "company"),
         getInterviewSessionsByJobListing,
     );
+
+router
+    .route("/:id/flags")
+    .get(protect, authorize("admin", "company"), getFlagsByJobListing);
 
 export { router as jobListingsRouter };
