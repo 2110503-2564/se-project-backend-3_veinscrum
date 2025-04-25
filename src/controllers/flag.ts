@@ -21,27 +21,28 @@ export const getFlagsByJobListing = async (
         const request = req as RequestWithAuth;
         const { id: userId, role: userRole } = request.user;
 
-        const flagUser = await FlagModel.find({
-            jobListing: req.params.id,
-        })
-            .populate([{ path: "user", select: "name email tel" }])
+        const jobListing = await JobListingModel.findById(request.params.id)
+            .populate({
+                path: "company",
+                select: "owner",
+            })
             .lean<
-                Flag & {
-                    jobListing: JobListing & { company: Company };
-                } & { user: User } & Required<{ _id: mongoose.Types.ObjectId }>
+                JobListing & { company: Company } & Required<{
+                        _id: mongoose.Types.ObjectId;
+                    }>
             >();
 
-        if (!flagUser) {
+        if (!jobListing) {
             res.status(404).json({
                 success: false,
-                error: `No job listings found with id ${req.params.id}`,
+                error: "Job listing not found",
             });
             return;
         }
 
         if (
             userRole !== "admin" &&
-            String(userId) !== String(flagUser.jobListing.company.owner)
+            String(userId) !== String(jobListing.company.owner)
         ) {
             res.status(403).json({
                 success: false,
@@ -49,9 +50,24 @@ export const getFlagsByJobListing = async (
             });
             return;
         }
+
+        const flagUsers = await FlagModel.find({
+            jobListing: req.params.id,
+        })
+            .populate({ path: "user", select: "name email tel" })
+            .lean<
+                Array<
+                    Flag & {
+                        user: Pick<User, "name" | "email" | "tel">;
+                    } & Required<{
+                            _id: mongoose.Types.ObjectId;
+                        }>
+                >
+            >();
+
         res.status(200).json({
             success: true,
-            data: flagUser,
+            data: flagUsers,
         });
     } catch (err) {
         next(err);
@@ -67,7 +83,7 @@ export async function createFlag(
     next: NextFunction,
 ) {
     try {
-        const user = UserModel.findById(req.body.user);
+        const user = await UserModel.findById(req.body.user);
         if (!user) {
             res.status(404).json({
                 success: false,
@@ -107,7 +123,7 @@ export async function createFlag(
 }
 
 /// @desc     Delete flag (authentication required)
-/// @route    DELETE /api/v1/flags/id
+/// @route    DELETE /api/v1/flags/:id
 /// @access   Protected
 export async function deleteFlag(
     req: Request,
@@ -132,9 +148,28 @@ export async function deleteFlag(
             return;
         }
 
+        const jobListing = await JobListingModel.findById(flag.jobListing)
+            .populate({
+                path: "company",
+                select: "owner",
+            })
+            .lean<
+                JobListing & { company: Company } & Required<{
+                        _id: mongoose.Types.ObjectId;
+                    }>
+            >();
+
+        if (!jobListing) {
+            res.status(404).json({
+                success: false,
+                error: "Job listing not found",
+            });
+            return;
+        }
+
         if (
             userRole !== "admin" &&
-            String(userId) !== String(flag.jobListing.company.owner)
+            String(userId) !== String(jobListing.company.owner)
         ) {
             res.status(403).json({
                 success: false,
