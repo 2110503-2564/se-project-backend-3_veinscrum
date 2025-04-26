@@ -105,7 +105,7 @@
  *         description: The flag id
  *     responses:
  *       200:
- *         description: The job listing was deleted
+ *         description: The flag was deleted
  *         content:
  *           application/json:
  *             schema:
