@@ -192,7 +192,7 @@ export async function deleteFlag(
         ) {
             res.status(403).json({
                 success: false,
-                error: "You do not have permission to delete this job listing",
+                error: "You do not have permission to delete this flag",
             });
 
             return;
