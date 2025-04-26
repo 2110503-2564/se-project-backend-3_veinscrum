@@ -1,4 +1,4 @@
-import { createFlag, deleteFlag} from "@/controllers/flag";
+import { createFlag, deleteFlag } from "@/controllers/flag";
 import { authorize, protect } from "@/middleware/auth";
 import * as express from "express";
 
