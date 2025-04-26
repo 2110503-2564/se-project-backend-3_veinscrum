@@ -9,6 +9,25 @@ import type { RequestWithAuth } from "@/types/Request";
 import type { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 
+// @desc     Get flags by query parameters
+/// @route    GET /api/v1/flags
+/// @access   Protected
+export async function getFlags(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+) {
+    try {
+        const flags = await FlagModel.find(req.query);
+        res.status(200).json({
+            success: true,
+            data: flags,
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
 /// @desc     Get flaged user
 /// @route    GET /api/v1/job-listings/:id/flags
 /// @access   Protect
