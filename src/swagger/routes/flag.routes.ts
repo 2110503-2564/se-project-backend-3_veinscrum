@@ -86,7 +86,7 @@
  *       401:
  *         description: Not authenticated
  *       403:
- *         description: Not authorized - only users with 'company' role can create companies
+ *         description: Not authorized - only users with 'company' role can create flags
  */
 /**
  * @swagger
