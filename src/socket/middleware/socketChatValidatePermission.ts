@@ -1,4 +1,3 @@
-import { ChatSocketEvent } from "@/constants/ChatSocketEvent";
 import { ChatModel } from "@/models/Chat";
 import { InterviewSessionModel } from "@/models/InterviewSession";
 import type { Company } from "@/types/models/Company";
@@ -38,8 +37,7 @@ export const socketChatValidatePermission = async (
             >();
 
         if (!interviewSession) {
-            socket.disconnect();
-            return;
+            return next(new Error("interviewSession not found"));
         }
 
         if (
@@ -47,11 +45,11 @@ export const socketChatValidatePermission = async (
             String(socket.data.user._id) !==
                 String(interviewSession.jobListing.company.owner)
         ) {
-            socket.emit(ChatSocketEvent.ChatError, {
-                error: "You do not have permission to interact with this chat",
-            });
-            socket.disconnect();
-            return;
+            return next(
+                new Error(
+                    "You do not have permission to interact with this chat",
+                ),
+            );
         }
 
         if (!interviewSession.chat) {
@@ -87,10 +85,6 @@ export const socketChatValidatePermission = async (
             "An error occurred during socketChatValidatePermission:",
             error,
         );
-        socket.emit(ChatSocketEvent.ChatError, {
-            error: "An unexpected error occurred.",
-        });
-
-        socket.disconnect();
+        return next(new Error("An unexpected error occurred."));
     }
 };

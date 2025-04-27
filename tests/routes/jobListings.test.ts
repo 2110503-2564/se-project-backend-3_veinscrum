@@ -441,7 +441,7 @@ describe("Job Listings Routes", () => {
             expect(response.body).toHaveProperty("success", false);
             expect(response.body).toHaveProperty(
                 "error",
-                'Mongoose Error: Cast to ObjectId failed for value "NOT_OBJECT_ID" (type string) at path "_id" for model "Company\"',
+                'Mongoose Error: Cast to ObjectId failed for value "NOT_OBJECT_ID" (type string) at path "_id" for model "Company"',
             );
         });
     });
@@ -1083,23 +1083,6 @@ describe("Job Listings Routes", () => {
                 password: "password123",
                 tel: "1234567890",
                 role: "company",
-            });
-
-            const company = await CompanyModel.create({
-                name: "Test Company",
-                address: "123 Delete St",
-                website: "https://test.com",
-                description: "Delete test description",
-                tel: "9876543210",
-                owner: owner._id,
-            });
-
-            // Create job listing
-            const jobListing = await JobListingModel.create({
-                company: company._id,
-                jobTitle: "Job",
-                description: "This job",
-                image: "https://example.com/delete.jpg",
             });
 
             // Mock JWT verification to return the owner's ID with company role

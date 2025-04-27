@@ -847,30 +847,12 @@ describe("Flag Routes", () => {
                 role: "company",
             });
 
-            const company2 = await UserModel.create({
-                name: "Company2 User",
-                email: "company2@test.com",
-                password: "password123",
-                tel: "0123456789",
-                role: "company",
-            });
-
             const user1 = await UserModel.create({
                 name: "Test User1",
                 email: "user1@test.com",
                 password: "password123",
                 tel: "1234567890",
                 role: "user",
-            });
-
-            // Create test company in the database
-            const company = await CompanyModel.create({
-                name: "Deep Learning Systems",
-                address: "123 AI Street, Tech City",
-                website: "https://deeplearnsys.ai",
-                description: "Specialized in deep learning solutions",
-                tel: "+1 (555) 123-4567",
-                owner: company2._id,
             });
 
             const flag = await FlagModel.create({
@@ -937,13 +919,6 @@ describe("Flag Routes", () => {
                 jobTitle: "Software Engineer",
                 description: "Develop software",
                 image: "https://example.com/image1.jpg",
-            });
-
-            const jobListing2 = await JobListingModel.create({
-                company: company._id,
-                jobTitle: "Software QA",
-                description: "QA software",
-                image: "https://example.com/image2.jpg",
             });
 
             const flag = await FlagModel.create({
