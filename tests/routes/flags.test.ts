@@ -833,7 +833,7 @@ describe("Flag Routes", () => {
             expect(response.body).toHaveProperty("success", false);
             expect(response.body).toHaveProperty(
                 "error",
-                "You do not have permission to delete this job listing",
+                "You do not have permission to delete this flag",
             );
         });
 
