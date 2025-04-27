@@ -103,7 +103,7 @@ describe("socketAuth Middleware", () => {
 
         clientSocket = Client(`http://localhost:${PORT}`, {
             auth: { token: "valid-token" },
-            query: { interviewSession: interviewSession._id },
+            query: { interviewSession: interviewSession._id.toString() },
         });
 
         // Wait for connection
