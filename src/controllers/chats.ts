@@ -50,7 +50,16 @@ export async function updateChatMessage(
             return;
         }
 
-        message.content = request.body.content || message.content;
+        if (!request.body.content) {
+            res.status(400).json({
+                success: false,
+                error: "Content is required",
+            });
+
+            return;
+        }
+
+        message.content = request.body.content;
 
         const updatedChat = await chat.save();
 
