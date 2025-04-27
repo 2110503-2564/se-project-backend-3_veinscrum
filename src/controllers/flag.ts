@@ -27,7 +27,7 @@ export const getFlagsByJobListing = async (
                 select: "owner",
             })
             .lean<
-                JobListing & { company: Company } & Required<{
+                JobListing & { company: Pick<Company, "owner"> } & Required<{
                         _id: mongoose.Types.ObjectId;
                     }>
             >();
