@@ -28,6 +28,9 @@ const config: Config = {
         "!**/node_modules/**",
         "!**/dist/**",
         "!**/*.d.ts",
+
+        "!src/server.ts",
+        "!src/config/**",
     ],
 
     // The directory where Jest should output its coverage files

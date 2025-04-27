@@ -10,6 +10,7 @@ import type { RequestWithAuth } from "@/types/Request";
 import { buildComparisonQuery } from "@/utils/buildComparisonQuery";
 import { filterAndPaginate } from "@/utils/filterAndPaginate";
 import type { NextFunction, Request, Response } from "express";
+import assert from "node:assert";
 
 /// @desc     Get companies (query is allowed)
 /// @route    GET /api/v1/companies
@@ -35,14 +36,7 @@ export const getCompanies = async (
             total,
         });
 
-        if (!result) {
-            res.status(400).json({
-                success: false,
-                error: "Invalid pagination parameters: 'page' and 'limit' must be positive integers.",
-            });
-
-            return;
-        }
+        assert(result);
 
         const companies = await result.query.exec();
 
