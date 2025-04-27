@@ -257,4 +257,20 @@
  *         }
  *         date: "2025-05-12T14:00:00Z"
  *         createdAt: "2025-04-12T10:30:00Z"
+ *
+ *     Flag:
+ *       type: object
+ *       required:
+ *         - jobListing
+ *         - user
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: Flag ID
+ *         jobListing:
+ *           type: string
+ *           description: Job listing ID
+ *         user:
+ *           type: string
+ *           description: User ID
  */

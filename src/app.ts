@@ -17,6 +17,7 @@ import { companiesRouter } from "@/routes/companies";
 import { interviewSessionsRouter } from "@/routes/interviewSessions";
 import { jobListingsRouter } from "@/routes/jobListings";
 import { usersRouter } from "@/routes/users";
+import { flagRouter } from "./routes/flag";
 
 export function initializeApp() {
     const app = express();
@@ -45,6 +46,7 @@ export function initializeApp() {
     app.use("/api/v1/users", usersRouter);
     app.use("/api/v1/chats", chatsRouter);
     app.use("/api/v1/job-listings", jobListingsRouter);
+    app.use("/api/v1/flags", flagRouter);
 
     // Global error handler
     app.use(errorHandler);

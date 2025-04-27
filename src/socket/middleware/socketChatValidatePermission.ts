@@ -60,13 +60,22 @@ export const socketChatValidatePermission = async (
                 messages: [],
             });
 
-            await InterviewSessionModel.findByIdAndUpdate(
-                interviewSession._id,
-                {
-                    chat: chat._id,
-                },
+            const updatedSession = await InterviewSessionModel.findOneAndUpdate(
+                { _id: interviewSession._id, chat: { $exists: false } },
+                { chat: chat._id },
+                { new: true },
             );
-            interviewSession.chat = chat._id;
+
+            if (updatedSession) {
+                interviewSession.chat = chat._id;
+            } else {
+                await ChatModel.findByIdAndDelete(chat._id);
+                const latestSession = await InterviewSessionModel.findById(
+                    interviewSession._id,
+                ).lean();
+
+                interviewSession.chat = latestSession?.chat ?? null;
+            }
         }
 
         (socket as ValidatedChatSocket).data.interviewSession =
