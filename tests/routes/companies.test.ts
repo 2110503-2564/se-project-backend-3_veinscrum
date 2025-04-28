@@ -724,8 +724,6 @@ describe("Companies Routes", () => {
             // Mock JWT verification to return the admin's ID
             (jwt.verify as jest.Mock).mockReturnValue({ id: user._id });
 
-            const nonExistingId = new mongoose.Types.ObjectId();
-
             const response = await request(app)
                 .delete(`/api/v1/companies/${company._id}`)
                 .set("Authorization", "Bearer fake-jwt-token");
