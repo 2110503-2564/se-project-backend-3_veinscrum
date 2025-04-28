@@ -482,7 +482,7 @@ describe("Companies Routes", () => {
             );
         });
 
-        it("should return 403 if user don't have permission", async () => {
+        it("should return 403 if the user does not have permission", async () => {
             // Create an admin user
             const user = await UserModel.create({
                 name: "Another Company",
