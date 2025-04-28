@@ -24,7 +24,7 @@ jest.mock("jsonwebtoken", () => ({
 let app: Express;
 let httpServer: ReturnType<typeof createServer>;
 let clientSocket: Socket;
-const PORT = 15052;
+const PORT = 15051;
 
 beforeAll(() => {
     process.env.JWT_SECRET = "test-secret";
@@ -43,15 +43,21 @@ afterAll(() => {
 });
 
 describe("socketAuth Middleware", () => {
+    let originalJwtSecret: string | undefined;
+
     beforeEach(async () => {
         jest.clearAllMocks();
         await UserModel.deleteMany({});
+        // Store original JWT_SECRET
+        originalJwtSecret = process.env.JWT_SECRET;
     });
 
     afterEach(() => {
         if (clientSocket) {
             clientSocket.close();
         }
+        // Restore original JWT_SECRET
+        process.env.JWT_SECRET = originalJwtSecret;
     });
 
     it("should connect successfully with valid token and user", async () => {
@@ -188,7 +194,6 @@ describe("socketAuth Middleware", () => {
     });
 
     it("should reject connection when JWT_SECRET is not defined", async () => {
-        const originalSecret = process.env.JWT_SECRET;
         process.env.JWT_SECRET = "";
 
         (jwt.verify as jest.Mock).mockReturnValue({
@@ -211,7 +216,5 @@ describe("socketAuth Middleware", () => {
             new Error("JWT_SECRET must be defined in .env file"),
         );
         expect(clientSocket.connected).toBe(false);
-        // Restore JWT_SECRET for other tests
-        process.env.JWT_SECRET = originalSecret;
     });
 });
