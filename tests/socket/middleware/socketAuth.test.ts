@@ -24,7 +24,7 @@ jest.mock("jsonwebtoken", () => ({
 let app: Express;
 let httpServer: ReturnType<typeof createServer>;
 let clientSocket: Socket;
-const PORT = 15051;
+const PORT = 15052;
 
 beforeAll(() => {
     process.env.JWT_SECRET = "test-secret";
