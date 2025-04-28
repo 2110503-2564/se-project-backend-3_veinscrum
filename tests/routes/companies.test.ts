@@ -85,6 +85,18 @@ describe("Companies Routes", () => {
             expect(companyNames).toContain("Deep Learning Systems");
             expect(companyNames).toContain("Database Solutions");
         });
+
+        it("should return 500 if unexpected error", async () => {
+            jest.spyOn(CompanyModel, "find").mockImplementation(() => {
+                throw new Error("Mock error");
+            });
+
+            const response = await request(app).get("/api/v1/companies");
+
+            expect(response.status).toBe(500);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty("error", "Mock error");
+        });
     });
 
     describe("GET /api/v1/companies/:id", () => {
@@ -124,6 +136,21 @@ describe("Companies Routes", () => {
             expect(response.status).toBe(404);
             expect(response.body).toHaveProperty("success", false);
             expect(response.body).toHaveProperty("error", "Company not found");
+        });
+
+        it("should return 500 if unexpected error", async () => {
+            jest.spyOn(CompanyModel, "findById").mockImplementation(() => {
+                throw new Error("Mock error");
+            });
+
+            const nonExistingId = new mongoose.Types.ObjectId();
+            const response = await request(app).get(
+                `/api/v1/companies/${nonExistingId}`,
+            );
+
+            expect(response.status).toBe(500);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty("error", "Mock error");
         });
     });
 
@@ -289,6 +316,40 @@ describe("Companies Routes", () => {
             expect(companyInDb).toBeNull();
         });
 
+        it("should return 401 if user who created company don't existed", async () => {
+            // Create a user to be the owner
+            const owner = await UserModel.create({
+                name: "Company Owner",
+                email: "owner@test.com",
+                password: "password123",
+                tel: "+1 (555) 444-3333",
+                role: "company",
+            });
+
+            // Mock JWT verification to return the owner's ID
+            (jwt.verify as jest.Mock).mockReturnValue({
+                id: new mongoose.Types.ObjectId(),
+            });
+
+            const companyData = {
+                name: "New Tech Company",
+                address: "789 Innovation Ave, Future City",
+                website: "https://newtechco.com",
+                description: "Cutting-edge technology solutions",
+                tel: "+1 (555) 333-2222",
+                owner: owner._id,
+            };
+
+            const response = await request(app)
+                .post("/api/v1/companies")
+                .set("Authorization", "Bearer fake-jwt-token")
+                .send(companyData);
+
+            expect(response.status).toBe(401);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty("error", "User not found");
+        });
+
         it("should prevent a user from creating a new company if they already have one", async () => {
             // Create a user to be the owner
             const owner = await UserModel.create({
@@ -421,6 +482,46 @@ describe("Companies Routes", () => {
             );
         });
 
+        it("should return 403 if user don't have permission", async () => {
+            // Create an admin user
+            const user = await UserModel.create({
+                name: "Another Company",
+                email: "another-company@test.com",
+                password: "password123",
+                tel: "+1 (555) 222-5555",
+                role: "company",
+            });
+
+            // Create a company to delete
+            const company = await CompanyModel.create({
+                name: "Company to Delete",
+                address: "123 Delete Street, Delete City",
+                website: "https://deletecompany.com",
+                description: "Company to be deleted",
+                tel: "+1 (555) 333-4444",
+                owner: new mongoose.Types.ObjectId(),
+            });
+
+            // Mock JWT verification to return the admin's ID
+            (jwt.verify as jest.Mock).mockReturnValue({ id: user._id });
+
+            const updateData = {
+                name: "Updated Non-existent Company",
+            };
+
+            const response = await request(app)
+                .put(`/api/v1/companies/${company._id}`)
+                .set("Authorization", "Bearer fake-jwt-token")
+                .send(updateData);
+
+            expect(response.status).toBe(403);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                "You do not have permission to update this company",
+            );
+        });
+
         it("should return 404 if company to update is not found", async () => {
             // Create a user
             const owner = await UserModel.create({
@@ -447,6 +548,39 @@ describe("Companies Routes", () => {
             expect(response.status).toBe(404);
             expect(response.body).toHaveProperty("success", false);
             expect(response.body).toHaveProperty("error", "Company not found");
+        });
+
+        it("should return 500 for unexpected error", async () => {
+            // Create an admin user
+            const admin = await UserModel.create({
+                name: "Another Admin",
+                email: "another-admin@test.com",
+                password: "password123",
+                tel: "+1 (555) 222-5555",
+                role: "admin",
+            });
+
+            jest.spyOn(CompanyModel, "findById").mockImplementation(() => {
+                throw new Error("Mock error");
+            });
+
+            // Mock JWT verification to return the admin's ID
+            (jwt.verify as jest.Mock).mockReturnValue({ id: admin._id });
+
+            const nonExistingId = new mongoose.Types.ObjectId();
+
+            const updateData = {
+                name: "Updated Non-existent Company",
+            };
+
+            const response = await request(app)
+                .put(`/api/v1/companies/${nonExistingId}`)
+                .set("Authorization", "Bearer fake-jwt-token")
+                .send(updateData);
+
+            expect(response.status).toBe(500);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty("error", "Mock error");
         });
     });
 
@@ -565,6 +699,71 @@ describe("Companies Routes", () => {
             expect(response.status).toBe(404);
             expect(response.body).toHaveProperty("success", false);
             expect(response.body).toHaveProperty("error", "Company not found");
+        });
+
+        it("should return 403 if user don't have permission", async () => {
+            // Create an admin user
+            const user = await UserModel.create({
+                name: "Another Company",
+                email: "another-company@test.com",
+                password: "password123",
+                tel: "+1 (555) 222-5555",
+                role: "company",
+            });
+
+            // Create a company to delete
+            const company = await CompanyModel.create({
+                name: "Company to Delete",
+                address: "123 Delete Street, Delete City",
+                website: "https://deletecompany.com",
+                description: "Company to be deleted",
+                tel: "+1 (555) 333-4444",
+                owner: new mongoose.Types.ObjectId(),
+            });
+
+            // Mock JWT verification to return the admin's ID
+            (jwt.verify as jest.Mock).mockReturnValue({ id: user._id });
+
+            const nonExistingId = new mongoose.Types.ObjectId();
+
+            const response = await request(app)
+                .delete(`/api/v1/companies/${company._id}`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(403);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                "You do not have permission to delete this company",
+            );
+        });
+
+        it("should return 500 for unexpected error", async () => {
+            // Create an admin user
+            const admin = await UserModel.create({
+                name: "Another Admin",
+                email: "another-admin@test.com",
+                password: "password123",
+                tel: "+1 (555) 222-5555",
+                role: "admin",
+            });
+
+            jest.spyOn(CompanyModel, "findById").mockImplementation(() => {
+                throw new Error("Mock error");
+            });
+
+            // Mock JWT verification to return the admin's ID
+            (jwt.verify as jest.Mock).mockReturnValue({ id: admin._id });
+
+            const nonExistingId = new mongoose.Types.ObjectId();
+
+            const response = await request(app)
+                .delete(`/api/v1/companies/${nonExistingId}`)
+                .set("Authorization", "Bearer fake-jwt-token");
+
+            expect(response.status).toBe(500);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty("error", "Mock error");
         });
     });
 

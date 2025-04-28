@@ -105,6 +105,120 @@ describe("Auth Routes", () => {
             expect(response.body).toHaveProperty("token", "test-token");
         });
 
+        it("should login and return token for valid credentials(Production)", async () => {
+            const oldEnv = process.env.JWT_COOKIE_EXPIRE;
+            const loginData = {
+                email: "test@example.com",
+                password: "password123",
+            };
+
+            const mockUser = {
+                _id: "mockid123",
+                email: loginData.email,
+                matchPassword: jest.fn().mockResolvedValue(true),
+                getSignedJwtToken: jest.fn().mockReturnValue("test-token"),
+            };
+            (UserModel.findOne as jest.Mock).mockReturnValue({
+                select: jest.fn().mockResolvedValue(mockUser),
+            });
+
+            process.env.NODE_ENV = "production";
+
+            const response = await request(app)
+                .post("/api/v1/auth/login")
+                .send(loginData);
+
+            expect(response.status).toBe(200);
+            expect(response.body).toHaveProperty("success", true);
+            expect(response.body).toHaveProperty("token", "test-token");
+            process.env.NODE_ENV = oldEnv;
+        });
+
+        it("should return 400 if email or password is missing", async () => {
+            const loginData = {
+                email: "",
+                password: "password123",
+            };
+
+            const mockUser = {
+                _id: "mockid123",
+                email: loginData.email,
+                matchPassword: jest.fn().mockResolvedValue(true),
+                getSignedJwtToken: jest.fn().mockReturnValue("test-token"),
+            };
+            (UserModel.findOne as jest.Mock).mockReturnValue({
+                select: jest.fn().mockResolvedValue(mockUser),
+            });
+
+            const response = await request(app)
+                .post("/api/v1/auth/login")
+                .send(loginData);
+
+            expect(response.status).toBe(400);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                "Please provide email and password",
+            );
+        });
+
+        it("should return 400 if email don't exist", async () => {
+            const loginData = {
+                email: "abc@abc.abc",
+                password: "password123",
+            };
+
+            (UserModel.findOne as jest.Mock).mockReturnValue({
+                select: jest.fn().mockResolvedValue(null),
+            });
+
+            const response = await request(app)
+                .post("/api/v1/auth/login")
+                .send(loginData);
+
+            expect(response.status).toBe(400);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                "Invalid credentials",
+            );
+        });
+
+        it("should return 500 if JWT_COOKIE_EXPIRE is undefined", async () => {
+            const oldEnv = process.env.JWT_COOKIE_EXPIRE;
+
+            const loginData = {
+                email: "test@example.com",
+                password: "password123",
+            };
+
+            const mockUser = {
+                _id: "mockid123",
+                email: loginData.email,
+                matchPassword: jest.fn().mockResolvedValue(true),
+                getSignedJwtToken: jest.fn().mockReturnValue("test-token"),
+            };
+            (UserModel.findOne as jest.Mock).mockReturnValue({
+                select: jest.fn().mockResolvedValue(mockUser),
+            });
+
+            if (process.env.JWT_COOKIE_EXPIRE) {
+                process.env.JWT_COOKIE_EXPIRE = "";
+            }
+
+            const response = await request(app)
+                .post("/api/v1/auth/login")
+                .send(loginData);
+
+            expect(response.status).toBe(500);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                "JWT_COOKIE_EXPIRE is not defined in .env file",
+            );
+            process.env.JWT_COOKIE_EXPIRE = oldEnv;
+        });
+
         it("should return 401 for invalid credentials", async () => {
             const loginData = {
                 email: "test@example.com",
@@ -125,6 +239,40 @@ describe("Auth Routes", () => {
 
             expect(response.status).toBe(401);
             expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                "Invalid credentials",
+            );
+        });
+
+        it("should return 500 for unexpected error", async () => {
+            const loginData = {
+                email: "test@example.com",
+                password: "wrongpassword",
+            };
+
+            const mockUser = {
+                email: loginData.email,
+                matchPassword: jest.fn().mockResolvedValue(false),
+            };
+            (UserModel.findOne as jest.Mock).mockReturnValue({
+                select: jest.fn().mockResolvedValue(mockUser),
+            });
+
+            jest.spyOn(UserModel, "findOne").mockImplementation(() => {
+                throw new Error("Mock unexpected error");
+            });
+
+            const response = await request(app)
+                .post("/api/v1/auth/login")
+                .send(loginData);
+
+            expect(response.status).toBe(500);
+            expect(response.body).toHaveProperty("success", false);
+            expect(response.body).toHaveProperty(
+                "error",
+                "Mock unexpected error",
+            );
         });
     });
 
@@ -148,6 +296,26 @@ describe("Auth Routes", () => {
                 name: mockUser.name,
                 email: mockUser.email,
             });
+        });
+    });
+
+    describe("GET /api/v1/auth/logout", () => {
+        it("should logout", async () => {
+            const mockUser = {
+                _id: "mockid123",
+                name: "Test User",
+                email: "test@example.com",
+            };
+            (jwt.verify as jest.Mock).mockReturnValue({ id: "mockid123" });
+            (UserModel.findById as jest.Mock).mockResolvedValue(mockUser);
+
+            const response = await request(app)
+                .get("/api/v1/auth/logout")
+                .set("Authorization", "Bearer test-token");
+
+            expect(response.status).toBe(200);
+            expect(response.body).toHaveProperty("success", true);
+            expect(response.body).toHaveProperty("data", {});
         });
     });
 
@@ -175,7 +343,7 @@ describe("Auth Routes", () => {
             const registerResponse = await request(app)
                 .post("/api/v1/auth/register")
                 .send(userData);
-
+            console.log(registerResponse.body);
             expect(registerResponse.status).toBe(201);
             expect(registerResponse.body.token).toBe("integration-token");
 
