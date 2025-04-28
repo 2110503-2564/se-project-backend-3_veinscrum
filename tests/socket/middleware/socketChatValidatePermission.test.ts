@@ -31,11 +31,7 @@ beforeAll(() => {
     app = initializeApp();
     httpServer = createServer(app);
     initializeSocket(httpServer);
-    httpServer.listen(PORT, () => {
-        console.log(
-            `Server running in ${process.env.NODE_ENV} mode on port ${PORT}`,
-        );
-    });
+    httpServer.listen(PORT);
 
     process.on("unhandledRejection", (err, promise) => {
         if (!(err instanceof Error)) return;
@@ -349,5 +345,220 @@ describe("socketChatValidatePermission Middleware", () => {
         });
 
         expect(clientSocket.connected).toBe(true);
+    });
+
+    it("should reject connection when interview session does not exist", async () => {
+        const user = await UserModel.create({
+            name: "Test User",
+            email: "user@test.com",
+            password: "password123",
+            tel: "1234567890",
+            role: "user",
+        });
+
+        // Mock JWT verification
+        (jwt.verify as jest.Mock).mockReturnValue({
+            id: user._id,
+            role: "user",
+        });
+
+        const nonExistentSessionId = new mongoose.Types.ObjectId();
+        let errorMessage: string | undefined;
+
+        // Create client socket with non-existent session ID
+        clientSocket = Client(`http://localhost:${PORT}`, {
+            auth: { token: "valid-token" },
+            query: { interviewSession: nonExistentSessionId.toString() },
+        });
+
+        clientSocket.on("connect_error", (error) => {
+            errorMessage = error.message;
+        });
+
+        // Wait for error
+        await new Promise<void>((resolve) => {
+            setTimeout(resolve, 1000);
+        });
+
+        expect(errorMessage).toBe("interviewSession not found");
+        expect(clientSocket.connected).toBe(false);
+    });
+
+    it("should handle database errors gracefully", async () => {
+        const user = await UserModel.create({
+            name: "Test User",
+            email: "user@test.com",
+            password: "password123",
+            tel: "1234567890",
+            role: "user",
+        });
+
+        const companyId = new mongoose.Types.ObjectId();
+        const companyOwner = await UserModel.create({
+            name: "Company Owner",
+            email: "owner@test.com",
+            password: "password123",
+            tel: "0987654321",
+            role: "company",
+            company: companyId,
+        });
+
+        const company = await CompanyModel.create({
+            _id: companyId,
+            name: "Test Company",
+            address: "123 Test St",
+            website: "https://test.com",
+            description: "A test company",
+            tel: "5555555555",
+            owner: companyOwner._id,
+        });
+
+        const jobListing = await JobListingModel.create({
+            company: company._id,
+            jobTitle: "Software Engineer",
+            description: "Develop amazing software",
+            image: "image.jpg",
+        });
+
+        const interviewSession = await InterviewSessionModel.create({
+            jobListing: jobListing._id,
+            user: user._id,
+            date: new Date(),
+        });
+
+        // Mock JWT verification
+        (jwt.verify as jest.Mock).mockReturnValue({
+            id: user._id,
+            role: "user",
+        });
+
+        // Mock InterviewSessionModel.findById to throw an error
+        jest.spyOn(InterviewSessionModel, "findById").mockImplementationOnce(
+            () => {
+                throw new Error("Database error");
+            },
+        );
+
+        let errorMessage: string | undefined;
+
+        clientSocket = Client(`http://localhost:${PORT}`, {
+            auth: { token: "valid-token" },
+            query: { interviewSession: interviewSession._id.toString() },
+        });
+
+        clientSocket.on("connect_error", (error) => {
+            errorMessage = error.message;
+        });
+
+        // Wait for error
+        await new Promise<void>((resolve) => {
+            setTimeout(resolve, 1000);
+        });
+
+        expect(errorMessage).toBe("An unexpected error occurred.");
+        expect(clientSocket.connected).toBe(false);
+    });
+
+    it("should handle race condition when creating chat", async () => {
+        const user = await UserModel.create({
+            name: "Test User",
+            email: "user@test.com",
+            password: "password123",
+            tel: "1234567890",
+            role: "user",
+        });
+
+        const companyId = new mongoose.Types.ObjectId();
+        const companyOwner = await UserModel.create({
+            name: "Company Owner",
+            email: "owner@test.com",
+            password: "password123",
+            tel: "0987654321",
+            role: "company",
+            company: companyId,
+        });
+
+        const company = await CompanyModel.create({
+            _id: companyId,
+            name: "Test Company",
+            address: "123 Test St",
+            website: "https://test.com",
+            description: "A test company",
+            tel: "5555555555",
+            owner: companyOwner._id,
+        });
+
+        const jobListing = await JobListingModel.create({
+            company: company._id,
+            jobTitle: "Software Engineer",
+            description: "Develop amazing software",
+            image: "image.jpg",
+        });
+
+        const chatId = new mongoose.Types.ObjectId();
+
+        const interviewSession = await InterviewSessionModel.create({
+            jobListing: jobListing._id,
+            user: user._id,
+            chat: chatId,
+            date: new Date(),
+        });
+
+        const chat = await ChatModel.create({
+            _id: chatId,
+            interviewSession: interviewSession._id,
+            message: [],
+        });
+
+        jest.spyOn(InterviewSessionModel, "findById").mockReturnValueOnce({
+            populate: jest.fn().mockReturnValue({
+                lean: jest.fn().mockResolvedValueOnce({
+                    _id: interviewSession._id,
+                    user: user._id,
+                    chat: null,
+                    jobListing: {
+                        _id: jobListing._id,
+                        company: {
+                            _id: company._id,
+                            name: company.name,
+                        },
+                    },
+                }),
+            }),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
+
+        // Mock JWT verification
+        (jwt.verify as jest.Mock).mockReturnValue({
+            id: user._id,
+            role: "user",
+        });
+
+        clientSocket = Client(`http://localhost:${PORT}`, {
+            auth: { token: "valid-token" },
+            query: { interviewSession: interviewSession._id.toString() },
+        });
+
+        // Wait for connection
+        await new Promise<void>((resolve) => {
+            clientSocket.on("connect", () => {
+                resolve();
+            });
+        });
+
+        expect(clientSocket.connected).toBe(true);
+
+        // Verify the chat in the database
+        const finalSession = await InterviewSessionModel.findById(
+            interviewSession._id,
+        );
+        expect(finalSession?.chat?.toString()).toBe(chat._id.toString());
+
+        // Verify the duplicate chat was cleaned up
+        const allChats = await ChatModel.find({
+            interviewSession: interviewSession._id,
+        });
+        expect(allChats).toHaveLength(1);
+        expect(allChats[0]._id.toString()).toBe(chat._id.toString());
     });
 });

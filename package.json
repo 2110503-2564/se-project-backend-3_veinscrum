@@ -81,7 +81,7 @@
         "typescript-eslint": "^8.30.1",
         "typescript-transform-paths": "^3.5.5"
     },
-    "packageManager": "pnpm@10.9.0",
+    "packageManager": "pnpm@10.10.0",
     "engines": {
         "node": "22.x"
     },

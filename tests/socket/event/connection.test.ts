@@ -657,4 +657,92 @@ describe("Socket Connection", () => {
         );
         expect(disconnected).toBe(true);
     });
+
+    it("should not process empty or whitespace-only messages", async () => {
+        const user = await UserModel.create({
+            name: "Test User",
+            email: "user@test.com",
+            password: "password123",
+            tel: "1234567890",
+            role: "user",
+        });
+
+        const companyId = new mongoose.Types.ObjectId();
+        const companyOwner = await UserModel.create({
+            name: "Company Owner",
+            email: "owner@test.com",
+            password: "password123",
+            tel: "0987654321",
+            role: "company",
+            company: companyId,
+        });
+
+        const company = await CompanyModel.create({
+            _id: companyId,
+            name: "Test Company",
+            address: "123 Test St",
+            website: "https://test.com",
+            description: "A test company",
+            tel: "5555555555",
+            owner: companyOwner._id,
+        });
+
+        const jobListing = await JobListingModel.create({
+            company: company._id,
+            jobTitle: "Software Engineer",
+            description: "Develop amazing software",
+            image: "image.jpg",
+        });
+
+        const chatId = new mongoose.Types.ObjectId();
+        const interviewSession = await InterviewSessionModel.create({
+            jobListing: jobListing._id,
+            user: user._id,
+            date: new Date(),
+            chat: chatId,
+        });
+
+        await ChatModel.create({
+            _id: chatId,
+            interviewSession: interviewSession._id,
+            messages: [],
+        });
+
+        (jwt.verify as jest.Mock).mockReturnValue({
+            id: user._id,
+            role: "user",
+        });
+
+        let messageReceived = false;
+        clientSocket = Client(`http://localhost:${PORT}`, {
+            auth: { token: "valid-token" },
+            query: { interviewSession: interviewSession._id.toString() },
+        });
+
+        // Wait for connection and message history
+        await new Promise<void>((resolve) => {
+            clientSocket.on(ChatSocketEvent.ChatHistory, () => {
+                resolve();
+            });
+        });
+
+        // Set up listener for new messages
+        clientSocket.on(ChatSocketEvent.ChatMessage, () => {
+            messageReceived = true;
+        });
+
+        // Send empty and whitespace-only messages
+        clientSocket.emit(ChatSocketEvent.ChatMessage, "");
+        clientSocket.emit(ChatSocketEvent.ChatMessage, "   ");
+        clientSocket.emit(ChatSocketEvent.ChatMessage, "\n\t");
+
+        // Wait a bit to ensure no messages are processed
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        expect(messageReceived).toBe(false);
+
+        // Verify no messages were saved to database
+        const updatedChat = await ChatModel.findById(chatId);
+        expect(updatedChat?.messages).toHaveLength(0);
+    });
 });

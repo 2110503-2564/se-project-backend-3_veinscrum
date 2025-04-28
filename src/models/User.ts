@@ -3,7 +3,6 @@ import jwt from "jsonwebtoken";
 import * as mongoose from "mongoose";
 
 import type { User } from "@/types/models/User";
-import type { SignOptions } from "jsonwebtoken";
 
 const UserSchema = new mongoose.Schema<User>({
     name: {
@@ -62,7 +61,7 @@ UserSchema.methods.getSignedJwtToken = function () {
     }
 
     return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRE as SignOptions["expiresIn"],
+        expiresIn: process.env.JWT_EXPIRE as jwt.SignOptions["expiresIn"],
     });
 };
 

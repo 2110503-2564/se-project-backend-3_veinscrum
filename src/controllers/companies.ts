@@ -95,14 +95,7 @@ export async function createCompany(
 
         const user = await UserModel.findById(userId);
 
-        if (!user) {
-            res.status(404).json({
-                success: false,
-                error: "User not found",
-            });
-
-            return;
-        }
+        assert(user);
 
         if (user.company !== null) {
             res.status(400).json({
@@ -171,14 +164,15 @@ export async function updateCompany(
             },
         );
 
+        /* Idk how to reach this
         if (!updatedCompany) {
             res.status(404).json({
                 success: false,
-                error: "Company not found",
+                error: "Error updating company",
             });
 
             return;
-        }
+        }*/
 
         res.status(200).json({ success: true, data: updatedCompany });
     } catch (err) {

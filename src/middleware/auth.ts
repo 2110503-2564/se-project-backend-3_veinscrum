@@ -10,8 +10,9 @@ export const protect = async (
 ): Promise<void> => {
     let token: string | undefined;
 
-    if (!process.env.JWT_SECRET)
-        throw new Error("JWT_SECRET must be defined in .env file");
+    if (!process.env.JWT_SECRET) {
+        return next(new Error("JWT_SECRET must be defined in .env file"));
+    }    
 
     if (req.headers.authorization?.startsWith("Bearer"))
         token = req.headers.authorization.split(" ")[1];
