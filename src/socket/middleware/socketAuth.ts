@@ -12,8 +12,9 @@ export const socketAuth = async (
         return next(new Error("No token provided"));
     }
 
-    if (!process.env.JWT_SECRET)
-        throw new Error("JWT_SECRET must be defined in .env file");
+    if (!process.env.JWT_SECRET) {
+        return next(new Error("JWT_SECRET must be defined in .env file"));
+    }
 
     try {
         const decoded: JwtPayload = jwt.verify(
