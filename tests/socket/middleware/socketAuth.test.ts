@@ -186,4 +186,32 @@ describe("socketAuth Middleware", () => {
         expect(error).toEqual(new Error("Invalid token payload"));
         expect(clientSocket.connected).toBe(false);
     });
+
+    it("should reject connection when JWT_SECRET is not defined", async () => {
+        const originalSecret = process.env.JWT_SECRET;
+        process.env.JWT_SECRET = "";
+
+        (jwt.verify as jest.Mock).mockReturnValue({
+            id: new mongoose.Types.ObjectId(),
+            role: "user",
+        });
+
+        clientSocket = Client(`http://localhost:${PORT}`, {
+            auth: { token: "valid-token" },
+        });
+
+        const error = await new Promise((resolve) => {
+            clientSocket.on("connect_error", (err) => {
+                resolve(err);
+            });
+        });
+
+        expect(clientSocket.connected).toBe(false);
+        expect(error).toEqual(
+            new Error("JWT_SECRET must be defined in .env file"),
+        );
+        expect(clientSocket.connected).toBe(false);
+        // Restore JWT_SECRET for other tests
+        process.env.JWT_SECRET = originalSecret;
+    });
 });
