@@ -1,4 +1,5 @@
 import * as bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import * as mongoose from "mongoose";
 
 import type { User } from "@/types/models/User";
@@ -53,19 +54,19 @@ UserSchema.pre("save", async function (next) {
     this.password = await bcrypt.hash(this.password, salt);
     next();
 });
-/* Unused
+
 UserSchema.methods.getSignedJwtToken = function () {
     if (!process.env.JWT_SECRET || !process.env.JWT_EXPIRE) {
         throw new Error("JWT_SECRET and JWT_EXPIRE must be defined");
     }
 
     return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRE as SignOptions["expiresIn"],
+        expiresIn: process.env.JWT_EXPIRE as jwt.SignOptions["expiresIn"],
     });
 };
 
 UserSchema.methods.matchPassword = async function (enteredPassword: string) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
-*/
+
 export const UserModel = mongoose.model("User", UserSchema);
