@@ -106,6 +106,14 @@ describe("Auth Middleware", () => {
             expect(next).not.toHaveBeenCalled();
         });
 
+        it("should return 401 if user not found", () => {
+            const authMiddleware = authorize("user");
+            authMiddleware(req as Request, res as Response, next);
+
+            expect(res.status).toHaveBeenCalledWith(401);
+            expect(next).not.toHaveBeenCalled();
+        });
+
         it("should call next if user role is authorized", () => {
             (req as RequestWithAuth).user = mockAdmin;
 
