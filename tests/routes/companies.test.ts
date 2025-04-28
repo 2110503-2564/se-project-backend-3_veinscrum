@@ -316,7 +316,7 @@ describe("Companies Routes", () => {
             expect(companyInDb).toBeNull();
         });
 
-        it("should return 401 if user who created company don't existed", async () => {
+        it("should return 401 if the user who created the company does not exist", async () => {
             // Create a user to be the owner
             const owner = await UserModel.create({
                 name: "Company Owner",
