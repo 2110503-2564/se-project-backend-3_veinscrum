@@ -343,7 +343,6 @@ describe("Auth Routes", () => {
             const registerResponse = await request(app)
                 .post("/api/v1/auth/register")
                 .send(userData);
-            console.log(registerResponse.body);
             expect(registerResponse.status).toBe(201);
             expect(registerResponse.body.token).toBe("integration-token");
 
